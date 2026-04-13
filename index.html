@@ -6,41 +6,29 @@
 <title>Horarios Gaby 🧸</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-    /* Ajustes para iOS Safari */
     body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;background:#0a192f;color:white;margin:0;padding:0;overflow-x:hidden;-webkit-tap-highlight-color:transparent;}
     .header{background:#102a43;padding:15px;text-align:center;font-size:22px;font-weight:bold;border-bottom:2px solid #3b82f6;}
     #menu-principal {display: block;}
     #vista-completa {display: none; background: white; width: 100vw; height: 100vh; overflow: auto; position: fixed; top: 0; left: 0; z-index: 2000;}
     .card{background:#1c3d5a;margin:10px;padding:15px;border-radius:12px;border: 1px solid #2d4a6b;}
-    label{font-size:12px; display:block; margin-bottom:4px; color:#cbd5e1; text-transform: uppercase; font-weight: bold;}
-    
-    /* Botones e inputs optimizados para touch */
+    label{font-size:11px; display:block; margin-bottom:4px; color:#cbd5e1; text-transform: uppercase; font-weight: bold;}
     input,button,select{width:100%;padding:12px;margin-top:5px;border:none;border-radius:8px;font-size:16px;box-sizing:border-box;appearance: none; -webkit-appearance: none;}
     select, input[type="date"] { background: #cbd5e1; color: #0a192f; font-weight: bold; }
-    
     .btn{background:#3b82f6;color:white;font-weight:bold;cursor:pointer; transition: opacity 0.2s;}
     .btn:active { opacity: 0.7; }
     .btn-green{background:#22c55e;color:white;}
     .btn-red{background:#ef4444;color:white;}
     .btn-orange{background:#f59e0b;color:white;}
-    
-    #zona{background:white;padding:2px;width:95%; margin: 10px auto; border-radius: 8px; overflow-x: auto;}
+    #zona{background:white;padding:2px;width:98%; margin: 10px auto; border-radius: 4px; overflow-x: auto;}
     table{width:100%;border-collapse:collapse;font-size:10px;table-layout:fixed;color:black;}
     th{background:#f3f4f6;border:1px solid #000;padding:4px;font-size:10px;}
     td{border:1px solid #000;padding:6px 0;text-align:center;height:28px;}
-    
     .dep-row{background:#f59e0b;color:black;font-weight:bold;text-align:left;padding-left:8px;font-size:11px;}
     .descanso{background:#16a34a !important;color:white !important;font-weight:bold;}
     .vacaciones{background:#0ea5e9 !important;color:white !important;font-weight:bold;}
     .nombre-col{text-align:left;padding-left:5px;font-weight:bold;background:#fafafa;width:25%;font-size:9px;}
-    
-    #modal-suerte {
-        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center;
-    }
-    .modal-content {
-        background: #1c3d5a; padding: 25px; border-radius: 20px; width: 80%; text-align: center; border: 2px solid #3b82f6;
-    }
+    #modal-suerte { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 3000; justify-content: center; align-items: center; }
+    .modal-content { background: #1c3d5a; padding: 25px; border-radius: 20px; width: 80%; text-align: center; border: 2px solid #3b82f6; }
 </style>
 </head>
 <body>
@@ -48,14 +36,13 @@
 <div id="modal-suerte">
     <div class="modal-content">
         <div id="emoji-suerte" style="font-size: 50px; margin-bottom: 15px;">✨</div>
-        <div id="frase-texto" style="margin-bottom:25px; font-style:italic; font-size: 18px; line-height: 1.5;">Cargando...</div>
+        <div id="frase-texto" style="margin-bottom:25px; font-style:italic; font-size: 18px; line-height: 1.5;">...</div>
         <button class="btn" onclick="cerrarSuerte()">Cerrar</button>
     </div>
 </div>
 
 <div id="menu-principal">
     <div class="header">Horarios Gaby 🧸</div>
-
     <div class="card">
         <label>Colaborador:</label>
         <select id="empVac"></select>
@@ -68,7 +55,6 @@
         <input type="date" id="diaEsp">
         <button class="btn btn-orange" onclick="guardarEspecial()">Fijar Descanso Especial 📌</button>
     </div>
-
     <div class="card">
         <button class="btn" style="background:#8b5cf6; padding: 15px; font-size: 18px;" onclick="generar()">🔄 GENERAR HORARIOS ÓPTIMOS</button>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-top:10px;">
@@ -77,10 +63,7 @@
             <button class="btn btn-red" style="grid-column: span 2;" onclick="reiniciar()">Limpiar Todo</button>
         </div>
     </div>
-
-    <div id="zona">
-        <table id="tabla"></table>
-    </div>
+    <div id="zona"><table id="tabla"></table></div>
 </div>
 
 <div id="vista-completa">
@@ -89,7 +72,6 @@
 </div>
 
 <script>
-// Mantengo tus datosBase exactos
 const datosBase = [
     {dep:"Cajero Principal y Mixtos", nombre:"Fabiola"}, {dep:"Cajero Principal y Mixtos", nombre:"Karen"},
     {dep:"Cajero Principal y Mixtos", nombre:"Lizbeth"}, {dep:"Cajero Principal y Mixtos", nombre:"Nallely"},
@@ -106,43 +88,12 @@ const datosBase = [
 
 let empleados = JSON.parse(localStorage.getItem("cf_emp")) || datosBase.map(e => ({...e, vacaciones:[], especiales:[], horario:{}}));
 
-async function mostrarSuerte() {
-    document.getElementById("modal-suerte").style.display = "flex";
-    document.getElementById("frase-texto").innerText = "Buscando inspiración...";
-    let frasesVistas = JSON.parse(localStorage.getItem("frases_vistas_v2")) || [];
-    const megaPool = [
-        "No dejes que el ayer ocupe demasiado del hoy. ✨",
-        "¿Por qué los pájaros vuelan al sur? Porque caminando tardarían mucho. 😂",
-        "El éxito es la suma de pequeños esfuerzos repetidos día tras día. 🚀",
-        "¿Qué le dice una impresora a otra? ¿Esa hoja es tuya? 😂",
-        "Tu actitud determina tu dirección. ✨",
-        "¿Para qué va una caja al gimnasio? Para hacerse caja fuerte. 😂",
-        "Sé el cambio que quieres ver en el mundo. 🚀",
-        "A veces se gana, a veces se aprende. ✨",
-        "¿Qué hace un mudo bailando? Mudanza. 😂"
-    ];
-    let seleccionada = "";
-    try {
-        const resp = await fetch('https://api.quotable.io/random?tags=motivational');
-        const data = await resp.json();
-        if (data.content && !frasesVistas.includes(data.content.trim())) seleccionada = data.content.trim();
-    } catch (e) { }
-
-    if (!seleccionada) {
-        let disp = megaPool.filter(f => !frasesVistas.includes(f));
-        seleccionada = disp.length > 0 ? disp[Math.floor(Math.random()*disp.length)] : megaPool[Math.floor(Math.random()*megaPool.length)];
-    }
-    frasesVistas.push(seleccionada);
-    localStorage.setItem("frases_vistas_v2", JSON.stringify(frasesVistas));
-    document.getElementById("frase-texto").innerText = seleccionada;
-    document.getElementById("emoji-suerte").innerText = (seleccionada.includes("?") || seleccionada.includes("😂")) ? "😂" : "✨";
-}
-function cerrarSuerte() { document.getElementById("modal-suerte").style.display = "none"; }
-
+// --- CALENDARIO AUTOMÁTICO ---
 function obtenerSemana(){
     let hoy = new Date();
     let proximoLunes = new Date(hoy);
-    proximoLunes.setDate(hoy.getDate() + ( (7 - hoy.getDay() + 1) % 7 || 7));
+    // Busca el lunes de la próxima semana
+    proximoLunes.setDate(hoy.getDate() + ((7 - hoy.getDay() + 1) % 7 || 7));
     let dias=[];
     for(let i=0;i<7;i++){
         let d = new Date(proximoLunes);
@@ -153,66 +104,98 @@ function obtenerSemana(){
     return dias;
 }
 
-// LÓGICA DE MOTOR MATEMÁTICO MANTENIDA
+// --- NUEVO MOTOR MATEMÁTICO CORE ---
 function generar(){
     let dias = obtenerSemana();
     empleados.forEach(e => e.horario = {});
+
+    // 1. Prioridad: Marcar VAC y Especiales
     for(let d=0; d<7; d++){
         empleados.forEach(e => {
             if(e.vacaciones.includes(dias[d].iso)) e.horario[d] = "VAC";
             else if(e.especiales.includes(dias[d].iso)) e.horario[d] = "D";
         });
     }
-    const targetDescansos = { "Cajero Principal y Mixtos": 14, "Promotoría": 12, "Cajas abono": 12, "Afore": 4 };
-    const departamentos = ["Cajero Principal y Mixtos", "Promotoría", "Cajas abono", "Afore"];
 
+    const departamentos = ["Cajero Principal y Mixtos", "Promotoría", "Cajas abono", "Afore"];
+    
     departamentos.forEach(dep => {
         let grupo = empleados.filter(e => e.dep === dep);
-        let dayTargets = new Array(7).fill(Math.floor(targetDescansos[dep] / 7));
-        let remainder = targetDescansos[dep] % 7;
-        let indicesAleatorios = [0,1,2,3,4,5,6].sort(() => Math.random() - 0.5);
-        for(let i=0; i<remainder; i++){ dayTargets[indicesAleatorios[i]]++; }
-        let diasIteracion = [0,1,2,3,4,5,6].sort(() => Math.random() - 0.5);
-        diasIteracion.forEach(d => {
-            let cupo = dayTargets[d];
-            let asignados = grupo.filter(e => e.horario[d] === "D").length; 
-            cupo -= asignados;
-            if(cupo > 0) {
-                let candidatos = grupo.filter(e => !e.horario[d] && getDescansos(e) < 2);
-                candidatos = candidatos.filter(e => !(e.nombre === "Fabiola" && [15,16,20].includes(dias[d].num)));
-                candidatos.sort((a, b) => evalCandidato(a, d, grupo) - evalCandidato(b, d, grupo));
-                for(let i=0; i<cupo && i<candidatos.length; i++){ candidatos[i].horario[d] = "D"; }
-            }
-        });
-        grupo.forEach(emp => {
-            let faltan = 2 - getDescansos(emp);
-            if(faltan > 0){
-                let libres = [0,1,2,3,4,5,6].filter(d => !emp.horario[d]);
-                libres = libres.filter(d => !(emp.nombre === "Fabiola" && [15,16,20].includes(dias[d].num)));
-                libres.sort((a, b) => evalCandidato(emp, a, grupo) - evalCandidato(emp, b, grupo));
-                for(let i=0; i<faltan && i<libres.length; i++){ emp.horario[libres[i]] = "D"; }
-            }
-        });
+        
+        // Regla de Oro: Máximo 2 descansos por día por grupo (Afore 1)
+        let maxPorDia = (dep === "Afore") ? 1 : 2;
+
+        // Intentar asignar los 2 descansos obligatorios por persona
+        for(let vuelta = 0; vuelta < 2; vuelta++){
+            let diasShuffle = [0,1,2,3,4,5,6].sort(() => Math.random() - 0.5);
+            
+            diasShuffle.forEach(d => {
+                let hoyDescansan = grupo.filter(e => e.horario[d] === "D" || e.horario[d] === "VAC").length;
+                if(hoyDescansan < maxPorDia){
+                    let candidatos = grupo.filter(e => !e.horario[d] && getSoloDescansos(e) < 2);
+                    
+                    // Aplicar Penalizaciones (Vecinos, Consecutivos, Fabiola)
+                    candidatos.sort((a, b) => {
+                        return calcularPenalizacion(a, d, grupo, dias) - calcularPenalizacion(b, d, grupo, dias);
+                    });
+
+                    if(candidatos.length > 0){
+                        let mejor = candidatos[0];
+                        if(calcularPenalizacion(mejor, d, grupo, dias) < 90){ // Si no es prohibido
+                            mejor.horario[d] = "D";
+                        }
+                    }
+                }
+            });
+        }
     });
 
+    // 4. Asignar Comidas
     for(let d=0; d<7; d++){
         departamentos.forEach(dep => {
-            let activos = empleados.filter(e => e.dep === dep && !e.horario[d]);
-            let turnosN = ["12-1", "1-2", "2-3", "3-4", "4-5"].sort(() => Math.random() - 0.5);
-            activos.forEach((e, i) => { e.horario[d] = turnosN[i % 5]; });
+            let activos = empleados.filter(e => e.dep === dep && !["D","VAC"].includes(e.horario[d]));
+            let turnosNormal = ["12-1", "1-2", "2-3", "3-4", "4-5"].sort(() => Math.random() - 0.5);
+            let turnosFabiola = ["12-2", "1-3", "2-4", "3-5"].sort(() => Math.random() - 0.5);
+            
+            activos.forEach((e, i) => {
+                let ayerLibre = (d > 0 && ["D","VAC"].includes(e.horario[d-1]));
+                if(e.nombre === "Fabiola"){
+                    e.horario[d] = ayerLibre ? turnosNormal[i % 5] : turnosFabiola[i % 4];
+                } else {
+                    e.horario[d] = turnosNormal[i % 5];
+                }
+            });
         });
     }
+
     mostrar();
     localStorage.setItem("cf_emp", JSON.stringify(empleados));
 }
 
-function getDescansos(emp) { return Object.values(emp.horario).filter(v => v === "D").length; }
+function calcularPenalizacion(emp, d, grupo, diasInfo) {
+    let p = 0;
+    let diaNum = diasInfo[d].num;
 
-function evalCandidato(emp, d, grupo) {
-    let penalty = 0;
-    if((d > 0 && (emp.horario[d-1] === "D" || emp.horario[d-1] === "VAC")) || 
-       (d < 6 && (emp.horario[d+1] === "D" || emp.horario[d+1] === "VAC"))) penalty += 10;
-    return penalty;
+    // REGLA DE ORO: Fabiola
+    if(emp.nombre === "Fabiola" && [15,16,20].includes(diaNum)) return 100;
+
+    // REGLA VECINOS (Arriba y Abajo)
+    let idx = grupo.indexOf(emp);
+    if(idx > 0 && ["D","VAC"].includes(grupo[idx-1].horario[d])) p += 40;
+    if(idx < grupo.length - 1 && ["D","VAC"].includes(grupo[idx+1].horario[d])) p += 40;
+
+    // EVITAR 2 DÍAS SEGUIDOS (Baja probabilidad)
+    if(d > 0 && ["D","VAC"].includes(emp.horario[d-1])) p += 30;
+    if(d < 6 && ["D","VAC"].includes(emp.horario[d+1])) p += 30;
+
+    // EQUILIBRAR AFORE EN TODA LA SEMANA
+    if(emp.dep === "Afore" && d > 4) p += 10; 
+
+    return p;
+}
+
+function getSoloDescansos(emp) {
+    return Object.values(emp.horario).filter(v => v === "D").length;
 }
 
 function mostrar(){
@@ -238,51 +221,46 @@ function mostrar(){
     document.getElementById("tabla").innerHTML = html;
 }
 
+// --- INTERFAZ ---
 function mostrarVistaCompleta() {
     let tabla = document.getElementById("tabla").innerHTML;
     if(tabla === "") return alert("Genera los horarios primero");
-    document.getElementById("contenido-full").innerHTML = `<div style="padding:20px; background:white; color:black; min-height:100vh;"><h2 style="text-align:center;">Horarios Generados</h2><table style="width:100%">${tabla}</table></div>`;
+    document.getElementById("contenido-full").innerHTML = `<div style="padding:15px; background:white; color:black; min-height:100vh;"><h3 style="text-align:center;margin-top:0;">Horarios Gaby 🧸</h3><table style="width:100%">${tabla}</table></div>`;
     document.getElementById("menu-principal").style.display = "none";
     document.getElementById("vista-completa").style.display = "block";
 }
-
-function cerrarVistaCompleta() {
-    document.getElementById("vista-completa").style.display = "none";
-    document.getElementById("menu-principal").style.display = "block";
-}
+function cerrarVistaCompleta() { document.getElementById("vista-completa").style.display = "none"; document.getElementById("menu-principal").style.display = "block"; }
 
 function guardarVacaciones(){
     let i = document.getElementById("empVac").value;
     let f1 = document.getElementById("vac1").value, f2 = document.getElementById("vac2").value;
-    if(!f1 || !f2) return alert("Fechas incompletas");
+    if(!f1 || !f2) return alert("Pon las fechas");
     let inicio = new Date(f1 + "T00:00:00"), fin = new Date(f2 + "T00:00:00");
     while(inicio <= fin){
         let iso = inicio.toISOString().split('T')[0];
         if(!empleados[i].vacaciones.includes(iso)) empleados[i].vacaciones.push(iso);
         inicio.setDate(inicio.getDate()+1);
     }
-    alert("Vacaciones registradas");
+    alert("Vacaciones guardadas");
 }
-
 function guardarEspecial(){
     let i = document.getElementById("empVac").value;
     let f = document.getElementById("diaEsp").value;
     if(!f) return;
-    if(empleados[i].nombre === "Fabiola" && [15,16,20].includes(parseInt(f.split('-')[2]))) return alert("Fabiola no puede descansar ese día");
     empleados[i].especiales = [f];
-    alert("Descanso especial fijado");
+    alert("Día especial fijado");
 }
+function reiniciar(){ if(confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); } }
 
-function reiniciar(){ 
-    if(confirm("¿Deseas resetear todo?")) { 
-        localStorage.clear();
-        location.reload();
-    } 
+async function mostrarSuerte() {
+    const frases = ["Hoy será un gran día 🚀", "¡A darle con todo! ✨", "Eres el mejor en lo que haces 🏆", "Sonríe, hoy descansas pronto 😂"];
+    document.getElementById("modal-suerte").style.display = "flex";
+    document.getElementById("frase-texto").innerText = frases[Math.floor(Math.random()*frases.length)];
 }
+function cerrarSuerte() { document.getElementById("modal-suerte").style.display = "none"; }
 
 function cargarSelect(){
     let sel = document.getElementById("empVac");
-    sel.innerHTML = "";
     empleados.forEach((e,i) => { let op = document.createElement("option"); op.value = i; op.textContent = e.nombre; sel.appendChild(op); });
 }
 
