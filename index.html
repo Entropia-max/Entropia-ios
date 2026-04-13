@@ -88,11 +88,9 @@ const datosBase = [
 
 let empleados = JSON.parse(localStorage.getItem("cf_emp")) || datosBase.map(e => ({...e, vacaciones:[], especiales:[], horario:{}}));
 
-// --- CALENDARIO AUTOMÁTICO ---
 function obtenerSemana(){
     let hoy = new Date();
     let proximoLunes = new Date(hoy);
-    // Busca el lunes de la próxima semana
     proximoLunes.setDate(hoy.getDate() + ((7 - hoy.getDay() + 1) % 7 || 7));
     let dias=[];
     for(let i=0;i<7;i++){
@@ -104,16 +102,15 @@ function obtenerSemana(){
     return dias;
 }
 
-// --- NUEVO MOTOR MATEMÁTICO CORE ---
 function generar(){
     let dias = obtenerSemana();
     empleados.forEach(e => e.horario = {});
 
-    // 1. Prioridad: Marcar VAC y Especiales
+    // PRIORIDAD 1: Marcar VAC y Especiales Guardados
     for(let d=0; d<7; d++){
         empleados.forEach(e => {
-            if(e.vacaciones.includes(dias[d].iso)) e.horario[d] = "VAC";
-            else if(e.especiales.includes(dias[d].iso)) e.horario[d] = "D";
+            if(e.vacaciones && e.vacaciones.includes(dias[d].iso)) e.horario[d] = "VAC";
+            else if(e.especiales && e.especiales.includes(dias[d].iso)) e.horario[d] = "D";
         });
     }
 
@@ -121,82 +118,51 @@ function generar(){
     
     departamentos.forEach(dep => {
         let grupo = empleados.filter(e => e.dep === dep);
-        
-        // Regla de Oro: Máximo 2 descansos por día por grupo (Afore 1)
         let maxPorDia = (dep === "Afore") ? 1 : 2;
 
-        // Intentar asignar los 2 descansos obligatorios por persona
         for(let vuelta = 0; vuelta < 2; vuelta++){
             let diasShuffle = [0,1,2,3,4,5,6].sort(() => Math.random() - 0.5);
-            
             diasShuffle.forEach(d => {
                 let hoyDescansan = grupo.filter(e => e.horario[d] === "D" || e.horario[d] === "VAC").length;
                 if(hoyDescansan < maxPorDia){
                     let candidatos = grupo.filter(e => !e.horario[d] && getSoloDescansos(e) < 2);
-                    
-                    // Aplicar Penalizaciones (Vecinos, Consecutivos, Fabiola)
-                    candidatos.sort((a, b) => {
-                        return calcularPenalizacion(a, d, grupo, dias) - calcularPenalizacion(b, d, grupo, dias);
-                    });
-
+                    candidatos.sort((a, b) => calcularPenalizacion(a, d, grupo, dias) - calcularPenalizacion(b, d, grupo, dias));
                     if(candidatos.length > 0){
                         let mejor = candidatos[0];
-                        if(calcularPenalizacion(mejor, d, grupo, dias) < 90){ // Si no es prohibido
-                            mejor.horario[d] = "D";
-                        }
+                        if(calcularPenalizacion(mejor, d, grupo, dias) < 90) mejor.horario[d] = "D";
                     }
                 }
             });
         }
     });
 
-    // 4. Asignar Comidas
     for(let d=0; d<7; d++){
         departamentos.forEach(dep => {
             let activos = empleados.filter(e => e.dep === dep && !["D","VAC"].includes(e.horario[d]));
             let turnosNormal = ["12-1", "1-2", "2-3", "3-4", "4-5"].sort(() => Math.random() - 0.5);
             let turnosFabiola = ["12-2", "1-3", "2-4", "3-5"].sort(() => Math.random() - 0.5);
-            
             activos.forEach((e, i) => {
                 let ayerLibre = (d > 0 && ["D","VAC"].includes(e.horario[d-1]));
-                if(e.nombre === "Fabiola"){
-                    e.horario[d] = ayerLibre ? turnosNormal[i % 5] : turnosFabiola[i % 4];
-                } else {
-                    e.horario[d] = turnosNormal[i % 5];
-                }
+                e.horario[d] = (e.nombre === "Fabiola") ? (ayerLibre ? turnosNormal[i % 5] : turnosFabiola[i % 4]) : turnosNormal[i % 5];
             });
         });
     }
-
     mostrar();
     localStorage.setItem("cf_emp", JSON.stringify(empleados));
 }
 
 function calcularPenalizacion(emp, d, grupo, diasInfo) {
     let p = 0;
-    let diaNum = diasInfo[d].num;
-
-    // REGLA DE ORO: Fabiola
-    if(emp.nombre === "Fabiola" && [15,16,20].includes(diaNum)) return 100;
-
-    // REGLA VECINOS (Arriba y Abajo)
+    if(emp.nombre === "Fabiola" && [15,16,20].includes(diasInfo[d].num)) return 100;
     let idx = grupo.indexOf(emp);
     if(idx > 0 && ["D","VAC"].includes(grupo[idx-1].horario[d])) p += 40;
     if(idx < grupo.length - 1 && ["D","VAC"].includes(grupo[idx+1].horario[d])) p += 40;
-
-    // EVITAR 2 DÍAS SEGUIDOS (Baja probabilidad)
     if(d > 0 && ["D","VAC"].includes(emp.horario[d-1])) p += 30;
     if(d < 6 && ["D","VAC"].includes(emp.horario[d+1])) p += 30;
-
-    // EQUILIBRAR AFORE EN TODA LA SEMANA
-    if(emp.dep === "Afore" && d > 4) p += 10; 
-
     return p;
 }
 
-function getSoloDescansos(emp) {
-    return Object.values(emp.horario).filter(v => v === "D").length;
-}
+function getSoloDescansos(emp) { return Object.values(emp.horario).filter(v => v === "D").length; }
 
 function mostrar(){
     let dias = obtenerSemana();
@@ -207,7 +173,6 @@ function mostrar(){
     const orden = ["Cajero Principal y Mixtos", "Promotoría", "Cajas abono", "Afore"];
     let final = [];
     orden.forEach(dep => final = final.concat(empleados.filter(e => e.dep === dep)));
-
     final.forEach(e => {
         if(e.dep !== depActual){ html += `<tr><td colspan="8" class="dep-row">${e.dep}</td></tr>`; depActual = e.dep; }
         html += `<tr><td class="nombre-col">${e.nombre}</td>`;
@@ -221,15 +186,19 @@ function mostrar(){
     document.getElementById("tabla").innerHTML = html;
 }
 
-// --- INTERFAZ ---
-function mostrarVistaCompleta() {
-    let tabla = document.getElementById("tabla").innerHTML;
-    if(tabla === "") return alert("Genera los horarios primero");
-    document.getElementById("contenido-full").innerHTML = `<div style="padding:15px; background:white; color:black; min-height:100vh;"><h3 style="text-align:center;margin-top:0;">Horarios Gaby 🧸</h3><table style="width:100%">${tabla}</table></div>`;
-    document.getElementById("menu-principal").style.display = "none";
-    document.getElementById("vista-completa").style.display = "block";
+function guardarEspecial(){
+    let i = parseInt(document.getElementById("empVac").value);
+    let f = document.getElementById("diaEsp").value;
+    if(!f) return alert("Selecciona una fecha");
+    
+    // CORRECCIÓN: Asegurar que se guarde en el array del colaborador
+    if(!empleados[i].especiales) empleados[i].especiales = [];
+    if(!empleados[i].especiales.includes(f)){
+        empleados[i].especiales.push(f);
+    }
+    localStorage.setItem("cf_emp", JSON.stringify(empleados));
+    alert("Descanso especial fijado para " + empleados[i].nombre + ". Ahora presiona GENERAR.");
 }
-function cerrarVistaCompleta() { document.getElementById("vista-completa").style.display = "none"; document.getElementById("menu-principal").style.display = "block"; }
 
 function guardarVacaciones(){
     let i = document.getElementById("empVac").value;
@@ -241,29 +210,29 @@ function guardarVacaciones(){
         if(!empleados[i].vacaciones.includes(iso)) empleados[i].vacaciones.push(iso);
         inicio.setDate(inicio.getDate()+1);
     }
+    localStorage.setItem("cf_emp", JSON.stringify(empleados));
     alert("Vacaciones guardadas");
 }
-function guardarEspecial(){
-    let i = document.getElementById("empVac").value;
-    let f = document.getElementById("diaEsp").value;
-    if(!f) return;
-    empleados[i].especiales = [f];
-    alert("Día especial fijado");
-}
-function reiniciar(){ if(confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); } }
 
+function reiniciar(){ if(confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); } }
+function mostrarVistaCompleta() {
+    let tabla = document.getElementById("tabla").innerHTML;
+    if(tabla === "") return alert("Genera los horarios primero");
+    document.getElementById("contenido-full").innerHTML = `<div style="padding:15px; background:white; color:black; min-height:100vh;"><h3 style="text-align:center;margin-top:0;">Horarios Gaby 🧸</h3><table style="width:100%">${tabla}</table></div>`;
+    document.getElementById("menu-principal").style.display = "none";
+    document.getElementById("vista-completa").style.display = "block";
+}
+function cerrarVistaCompleta() { document.getElementById("vista-completa").style.display = "none"; document.getElementById("menu-principal").style.display = "block"; }
 async function mostrarSuerte() {
     const frases = ["Hoy será un gran día 🚀", "¡A darle con todo! ✨", "Eres el mejor en lo que haces 🏆", "Sonríe, hoy descansas pronto 😂"];
     document.getElementById("modal-suerte").style.display = "flex";
     document.getElementById("frase-texto").innerText = frases[Math.floor(Math.random()*frases.length)];
 }
 function cerrarSuerte() { document.getElementById("modal-suerte").style.display = "none"; }
-
 function cargarSelect(){
     let sel = document.getElementById("empVac");
     empleados.forEach((e,i) => { let op = document.createElement("option"); op.value = i; op.textContent = e.nombre; sel.appendChild(op); });
 }
-
 window.onload = () => { cargarSelect(); mostrar(); };
 </script>
 </body>
