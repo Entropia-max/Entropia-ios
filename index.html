@@ -1,28 +1,283 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Mi Aplicación iOS</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 20px; background-color: #f4f4f9; }
-        .container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h1 { color: #333; }
-        button { background-color: #007AFF; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 18px; cursor: pointer; transition: 0.3s; }
-        button:active { background-color: #0056b3; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Horarios Gaby 🧸</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+    /* Estética formal Navy Blue */
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #0a192f; color: white; margin: 0; padding: 0; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+    .header { background: #102a43; padding: 15px; text-align: center; font-size: 22px; font-weight: bold; border-bottom: 2px solid #3b82f6; position: sticky; top: 0; z-index: 100; }
+    #menu-principal { display: block; padding-bottom: 20px; }
+    #vista-completa { display: none; background: white; width: 100vw; height: 100vh; overflow: auto; position: fixed; top: 0; left: 0; z-index: 200; }
+    .card { background: #1c3d5a; margin: 10px; padding: 15px; border-radius: 12px; border: 1px solid #2d4a6b; }
+    label { font-size: 12px; display: block; margin-bottom: 5px; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px; }
+    input, button, select { width: 100%; padding: 12px; margin-top: 5px; border: none; border-radius: 8px; font-size: 16px; box-sizing: border-box; appearance: none; -webkit-appearance: none; }
+    select { background: #cbd5e1; color: #0a192f; font-weight: bold; }
+    input[type="date"] { background: #cbd5e1; color: #0a192f; }
+    
+    .btn { background: #3b82f6; color: white; font-weight: bold; cursor: pointer; transition: background 0.3s; margin-bottom: 5px; text-align: center; }
+    .btn:active { background: #1d4ed8; transform: scale(0.98); }
+    .btn-green { background: #22c55e; color: white; }
+    .btn-red { background: #ef4444; color: white; }
+    .btn-orange { background: #f59e0b; color: white; }
+    
+    #zona { background: white; margin: 10px; border-radius: 8px; overflow-x: auto; min-height: 100px; }
+    table { width: 100%; border-collapse: collapse; font-size: 10px; table-layout: fixed; color: black; }
+    th { background: #f3f4f6; border: 1px solid #000; padding: 5px 2px; font-size: 10px; }
+    td { border: 1px solid #000; padding: 4px 0; text-align: center; height: 28px; }
+    
+    .dep-row { background: #f59e0b; color: black; font-weight: bold; text-align: left; padding-left: 8px; font-size: 11px; height: 20px; }
+    .descanso { background: #16a34a !important; color: white !important; font-weight: bold; }
+    .vacaciones { background: #0ea5e9 !important; color: white !important; font-weight: bold; }
+    .nombre-col { text-align: left; padding-left: 5px; font-weight: bold; background: #fafafa; width: 25%; font-size: 9px; }
+    
+    /* Modal Suerte */
+    #modal-suerte { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
+    .modal-content { background: #1c3d5a; padding: 30px; border-radius: 20px; width: 80%; text-align: center; border: 2px solid #3b82f6; box-shadow: 0 0 20px rgba(59,130,246,0.5); }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>¡App funcionando en iOS!</h1>
-        <p>Esta es la versión optimizada para tu iPad y iPhone.</p>
-        <button onclick="saludo()">Pruébame</button>
+
+<div id="modal-suerte">
+    <div class="modal-content">
+        <div id="emoji-suerte" style="font-size: 50px; margin-bottom: 15px;">🍀</div>
+        <div id="frase-texto" style="margin-bottom:25px; font-style:italic; font-size: 18px; line-height: 1.5;"></div>
+        <button class="btn" onclick="cerrarSuerte()">Cerrar</button>
+    </div>
+</div>
+
+<div id="menu-principal">
+    <div class="header">Horarios Gaby 🧸</div>
+
+    <div class="card">
+        <label>Gestionar Colaborador:</label>
+        <select id="empVac"></select>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+            <div style="flex:1"><label>Desde:</label><input type="date" id="vac1"></div>
+            <div style="flex:1"><label>Hasta:</label><input type="date" id="vac2"></div>
+        </div>
+        <button class="btn" style="margin-top:10px;" onclick="guardarVacaciones()">Asignar Vacaciones ✈️</button>
+        <label style="margin-top:15px;">Día Fijo:</label>
+        <input type="date" id="diaEsp">
+        <button class="btn btn-orange" onclick="guardarEspecial()">Fijar Descanso Especial 📌</button>
     </div>
 
-    <script>
-        function saludo() {
-            alert("¡Funciona perfectamente en Safari!");
+    <div class="card">
+        <button class="btn" style="background:#8b5cf6; padding: 15px; font-size: 18px;" onclick="generar()">🔄 GENERAR HORARIOS</button>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
+            <button class="btn btn-green" onclick="mostrarSuerte()">¡Suerte! 🍀</button>
+            <button class="btn" onclick="mostrarVistaCompleta()">Ver Tabla</button>
+            <button class="btn btn-red" style="grid-column: span 2;" onclick="reiniciar()">Limpiar Datos</button>
+        </div>
+    </div>
+
+    <div id="zona">
+        <table id="tabla"></table>
+    </div>
+</div>
+
+<div id="vista-completa">
+    <button class="btn btn-red" style="width: auto; position: fixed; top: 10px; right: 10px; z-index: 300; padding: 5px 15px;" onclick="cerrarVistaCompleta()">Cerrar</button>
+    <div id="contenido-full"></div>
+</div>
+
+<script>
+// Datos base de la estructura de la tienda
+const datosBase = [
+    {dep:"Cajero Principal y Mixtos", nombre:"Fabiola"}, {dep:"Cajero Principal y Mixtos", nombre:"Karen"},
+    {dep:"Cajero Principal y Mixtos", nombre:"Lizbeth"}, {dep:"Cajero Principal y Mixtos", nombre:"Nallely"},
+    {dep:"Cajero Principal y Mixtos", nombre:"Eileen"}, {dep:"Cajero Principal y Mixtos", nombre:"Zurizadai"},
+    {dep:"Cajero Principal y Mixtos", nombre:"Luz"}, {dep:"Promotoría", nombre:"Michel"},
+    {dep:"Promotoría", nombre:"Gustavo"}, {dep:"Promotoría", nombre:"Karla"},
+    {dep:"Promotoría", nombre:"Omar"}, {dep:"Promotoría", nombre:"Faviola"},
+    {dep:"Promotoría", nombre:"Ernesto"}, {dep:"Cajas abono", nombre:"Arlette"},
+    {dep:"Cajas abono", nombre:"Minerva"}, {dep:"Cajas abono", nombre:"Beatriz"},
+    {dep:"Cajas abono", nombre:"Rosmery"}, {dep:"Cajas abono", nombre:"Jesús"},
+    {dep:"Cajas abono", nombre:"Lourdes"}, {dep:"Afore", nombre:"Karen Afore"},
+    {dep:"Afore", nombre:"Anthony"}
+];
+
+let empleados = JSON.parse(localStorage.getItem("cf_emp")) || datosBase.map(e => ({...e, vacaciones:[], especiales:[], horario:{}}));
+let historialFrases = JSON.parse(localStorage.getItem("historial_suerte")) || [];
+
+// Lógica de Frases sin repetir
+function mostrarSuerte() {
+    const pool = [
+        { e: "✨", t: "El éxito no es la clave de la felicidad. La felicidad es la clave del éxito." },
+        { e: "✨", t: "Tu único límite es tu mente." },
+        { e: "✨", t: "Haz de cada día tu obra maestra." },
+        { e: "😂", t: "¿Qué hace una abeja en el gimnasio? ¡Zumba!" },
+        { e: "😂", t: "¿Cómo se dice pañuelo en japonés? Sacamoco." },
+        { e: "😂", t: "¿Cuál es el café más peligroso del mundo? El ex-preso." },
+        { e: "🚀", t: "No cuentes los días, haz que los días cuenten." },
+        { e: "💡", t: "La lógica te llevará de A a B. La imaginación te llevará a todas partes." },
+        { e: "🌈", t: "Después de la tormenta, siempre sale el sol." }
+    ];
+
+    let disponibles = pool.filter(item => !historialFrases.includes(item.t));
+    if (disponibles.length === 0) { historialFrases = []; disponibles = pool; }
+
+    const seleccion = disponibles[Math.floor(Math.random() * disponibles.length)];
+    historialFrases.push(seleccion.t);
+    localStorage.setItem("historial_suerte", JSON.stringify(historialFrases));
+
+    document.getElementById("emoji-suerte").innerText = seleccion.e;
+    document.getElementById("frase-texto").innerText = seleccion.t;
+    document.getElementById("modal-suerte").style.display = "flex";
+}
+
+function cerrarSuerte() { document.getElementById("modal-suerte").style.display = "none"; }
+
+// Lógica de Fecha (Siguiente Semana)
+function obtenerSemana(){
+    let hoy = new Date();
+    let proximoLunes = new Date(hoy);
+    proximoLunes.setDate(hoy.getDate() + (1 + 7 - hoy.getDay()) % 7 || 7);
+    
+    let dias = [];
+    for(let i=0; i<7; i++){
+        let d = new Date(proximoLunes);
+        d.setDate(proximoLunes.getDate() + i);
+        let iso = d.toISOString().split('T')[0];
+        dias.push({ nombre:["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"][i], num:d.getDate(), iso:iso });
+    }
+    return dias;
+}
+
+// Generador de Horarios con Reglas de Negocio
+function generar(){
+    let dias = obtenerSemana();
+    const LIMITES = { "Cajero Principal y Mixtos": 2, "Cajas abono": 2, "Promotoría": 2, "Afore": 1 };
+    
+    empleados.forEach(e => e.horario = {});
+
+    // 1. Asignar Vacaciones y Especiales primero
+    for(let d=0; d<7; d++){
+        empleados.forEach(e => {
+            if(e.vacaciones.includes(dias[d].iso)) e.horario[d] = "VAC";
+            else if(e.especiales.includes(dias[d].iso)) e.horario[d] = "D";
+        });
+    }
+
+    // 2. Lógica Fabiola (Regla 15, 16, 20)
+    let fabiola = empleados.find(e => e.nombre === "Fabiola");
+    if(fabiola) {
+        let diasOp = [0,1,2,3,4,5,6].sort(() => Math.random() - 0.5);
+        for(let d of diasOp) {
+            let numD = Object.values(fabiola.horario).filter(v => v === "D" || v === "VAC").length;
+            if(numD < 2 && !fabiola.horario[d]) {
+                if(![15,16,20].includes(dias[d].num)) fabiola.horario[d] = "D";
+            }
         }
-    </script>
+    }
+
+    // 3. Distribución de descansos para el resto
+    [0,1,2,3,4,5,6].forEach(d => {
+        let conteo = { "Cajero Principal y Mixtos":0, "Cajas abono":0, "Promotoría":0, "Afore":0 };
+        empleados.forEach(e => { if(e.horario[d] === "D" || e.horario[d] === "VAC") conteo[e.dep]++; });
+        
+        let staff = [...empleados].filter(e => e.nombre !== "Fabiola").sort(() => Math.random() - 0.5);
+        staff.forEach(e => {
+            let numD = Object.values(e.horario).filter(v => v === "D" || v === "VAC").length;
+            if(numD < 2 && !e.horario[d] && conteo[e.dep] < LIMITES[e.dep]){
+                e.horario[d] = "D"; conteo[e.dep]++;
+            }
+        });
+    });
+
+    // 4. Asignar turnos de comida
+    for(let d=0; d<7; d++){
+        [...new Set(empleados.map(e => e.dep))].forEach(dep => {
+            let activos = empleados.filter(e => e.dep === dep && !e.horario[d]);
+            let t = ["12-1", "1-2", "2-3", "3-4", "4-5"].sort(() => Math.random() - 0.5);
+            activos.forEach((e, i) => {
+                if(e.nombre === "Fabiola") e.horario[d] = "2-4"; // Ejemplo fijo para ella
+                else e.horario[d] = t[i % t.length];
+            });
+        });
+    }
+    
+    mostrar();
+    localStorage.setItem("cf_emp", JSON.stringify(empleados));
+}
+
+function mostrar(){
+    let dias = obtenerSemana();
+    let html = `<tr><th>Nombre</th>`;
+    dias.forEach(d => html += `<th>${d.nombre}<br>${d.num}</th>`);
+    html += `</tr>`;
+    let depActual = "";
+    empleados.forEach(e => {
+        if(e.dep !== depActual){ html += `<tr><td colspan="8" class="dep-row">${e.dep}</td></tr>`; depActual = e.dep; }
+        html += `<tr><td class="nombre-col">${e.nombre}</td>`;
+        for(let i=0; i<7; i++){
+            let v = e.horario[i] || "-";
+            let c = v === "D" ? "descanso" : (v === "VAC" ? "vacaciones" : "");
+            html += `<td class="${c}">${v}</td>`;
+        }
+        html += `</tr>`;
+    });
+    document.getElementById("tabla").innerHTML = html;
+}
+
+// Funciones de interfaz
+function mostrarVistaCompleta() {
+    let tabla = document.getElementById("tabla").innerHTML;
+    if(!tabla) return alert("Primero genera los horarios");
+    document.getElementById("contenido-full").innerHTML = `<div style="padding:20px; background:white;"><h2 style="color:#0a192f; text-align:center;">Horarios de la Semana</h2><table style="width:100%">${tabla}</table></div>`;
+    document.getElementById("menu-principal").style.display = "none";
+    document.getElementById("vista-completa").style.display = "block";
+}
+
+function cerrarVistaCompleta() {
+    document.getElementById("vista-completa").style.display = "none";
+    document.getElementById("menu-principal").style.display = "block";
+}
+
+function guardarVacaciones(){
+    let i = document.getElementById("empVac").value;
+    let f1 = document.getElementById("vac1").value;
+    let f2 = document.getElementById("vac2").value;
+    if(!f1 || !f2) return alert("Selecciona el rango de fechas");
+    
+    let inicio = new Date(f1 + "T00:00:00");
+    let fin = new Date(f2 + "T00:00:00");
+    
+    while(inicio <= fin){
+        let iso = inicio.toISOString().split('T')[0];
+        if(!empleados[i].vacaciones.includes(iso)) empleados[i].vacaciones.push(iso);
+        inicio.setDate(inicio.getDate()+1);
+    }
+    alert("Vacaciones registradas para " + empleados[i].nombre);
+}
+
+function guardarEspecial(){
+    let i = document.getElementById("empVac").value;
+    let f = document.getElementById("diaEsp").value;
+    if(!f) return alert("Selecciona una fecha");
+    empleados[i].especiales = [f];
+    alert("Día fijo guardado");
+}
+
+function reiniciar(){ 
+    if(confirm("¿Borrar todos los datos?")) { 
+        localStorage.clear();
+        location.reload();
+    } 
+}
+
+function cargarSelect(){
+    let sel = document.getElementById("empVac");
+    empleados.forEach((e,i) => {
+        let op = document.createElement("option");
+        op.value = i; op.textContent = e.nombre;
+        sel.appendChild(op);
+    });
+}
+
+window.onload = () => { cargarSelect(); mostrar(); };
+</script>
 </body>
 </html>
