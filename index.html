@@ -2,86 +2,289 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Mantenimiento">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Horarios Gaby">
+    <meta name="mobile-web-app-capable" content="yes">
     
-    <title>Mantenimiento</title>
+    <title>Horarios Gaby 🧸</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
     <style>
-        /* Estilos generales */
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; /* Fuente nativa de Apple primero */
-            -webkit-font-smoothing: antialiased; /* Suavizado de fuente en Mac/iOS */
-            background-color: #f8f9fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            
-            /* 100dvh soluciona el problema de la barra de direcciones en Safari iOS */
-            height: 100vh; 
-            height: 100dvh; 
-            
-            text-align: center;
-            color: #333;
-        }
-
-        /* Contenedor tipo tarjeta */
-        .mantenimiento-card {
-            background-color: #ffffff;
-            padding: 40px 30px;
-            border-radius: 18px; /* Un poco más redondo, estilo iOS */
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            max-width: 85%;
-            width: 350px;
-        }
-
-        /* Icono */
-        .icono {
-            font-size: 65px;
-            margin-bottom: 15px;
-            -webkit-animation: flotar 3s ease-in-out infinite; /* Prefijo webkit para Safari antiguo */
-            animation: flotar 3s ease-in-out infinite;
-        }
-
-        /* Textos */
-        h1 {
-            font-size: 24px;
-            margin: 0 0 10px 0;
-            color: #1c1c1e; /* Color oscuro típico de iOS */
-            font-weight: 600;
-        }
-
-        p {
-            font-size: 16px;
-            color: #8e8e93; /* Gris típico de iOS */
-            line-height: 1.5;
-            margin: 0;
-        }
-
-        /* Animación */
-        @-webkit-keyframes flotar {
-            0% { -webkit-transform: translateY(0px); }
-            50% { -webkit-transform: translateY(-10px); }
-            100% { -webkit-transform: translateY(0px); }
-        }
-        @keyframes flotar {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
-        }
+        body{font-family:Arial,sans-serif;background:#0a192f;color:white;margin:0;padding:0;overflow-x:hidden; -webkit-tap-highlight-color: transparent;}
+        .header{background:#102a43;padding:15px;text-align:center;font-size:22px;font-weight:bold;border-bottom:2px solid #3b82f6;}
+        #menu-principal {display: block;}
+        #vista-completa {display: none; background: white; width: 100vw; height: 100vh; overflow: auto;}
+        .card{background:#1c3d5a;margin:5px;padding:10px;border-radius:8px;}
+        label{font-size:11px; display:block; margin-bottom:2px; color:#cbd5e1;}
+        input,button,select{width:100%;padding:10px;margin-top:5px;border:none;border-radius:6px;font-size:14px;box-sizing:border-box;}
+        .btn{background:#3b82f6;color:white;font-weight:bold;cursor:pointer;}
+        .btn-green{background:#22c55e;color:white;}
+        .btn-red{background:#ef4444;color:white;}
+        .btn-orange{background:#f59e0b;color:white;}
+        #zona{background:white;padding:2px;width:100%; min-height: 50px;}
+        table{width:100%;border-collapse:collapse;font-size:9px;table-layout:fixed;color:black;}
+        th{background:#f3f4f6;border:1px solid #000;padding:1px;font-size:9px;}
+        td{border:1px solid #000;padding:3px 0;text-align:center;height:22px;}
+        .dep-row{background:#f59e0b;color:black;font-weight:bold;text-align:left;padding-left:5px;font-size:10px;}
+        .descanso{background:#16a34a !important;color:white !important;font-weight:bold;}
+        .vacaciones{background:#0ea5e9 !important;color:white !important;font-weight:bold;}
+        .nombre-col{text-align:left;padding-left:3px;font-weight:bold;background:#fafafa;width:22%;font-size:8px;}
     </style>
 </head>
 <body>
 
-    <div class="mantenimiento-card">
-        <div class="icono">🛠️</div>
-        <h1>App en mantenimiento</h1>
-        <p>Estamos trabajando para mejorar tu experiencia. Estaremos de vuelta muy pronto, gracias por tu paciencia.</p>
+<div id="menu-principal">
+    <div class="header">Horarios Gaby 🧸</div>
+
+    <div class="card">
+        <label>Colaborador:</label>
+        <select id="empVac"></select>
+        <div style="display:flex; gap:5px; margin-top:5px;">
+            <input type="date" id="vac1" title="Inicio Vacaciones">
+            <input type="date" id="vac2" title="Fin Vacaciones">
+        </div>
+        <button class="btn" onclick="guardarVacaciones()">Asignar Vacaciones</button>
+        
+        <div style="display:flex; gap:5px; margin-top:10px;">
+            <input type="date" id="diaEsp1" title="Especial 1">
+            <input type="date" id="diaEsp2" title="Especial 2">
+        </div>
+        <button class="btn btn-orange" onclick="guardarEspeciales()">Fijar Descanso(s) Especial(es)</button>
+
+        <input type="date" id="diaEntrada11" style="margin-top:10px;">
+        <button class="btn btn-green" onclick="guardarEntrada11()">Asignar Entrada 11:00 AM</button>
     </div>
 
+    <div class="card">
+        <button class="btn" style="background:#8b5cf6;" onclick="generar()">🔄 GENERAR HORARIOS ÓPTIMOS</button>
+        <div style="display:flex; gap:4px; margin-top:8px;">
+            <button class="btn" onclick="mostrarVistaCompleta()">Pantalla Completa</button>
+            <button class="btn-red" onclick="reiniciar()">Limpiar Todo</button>
+        </div>
+    </div>
+
+    <div id="zona">
+        <table id="tabla"></table>
+    </div>
+</div>
+
+<div id="vista-completa">
+    <div id="contenido-full"></div>
+</div>
+
+<script>
+const datosBase = [
+    {dep:"Cajero Principal y Mixtos", nombre:"Fabiola"}, {dep:"Cajero Principal y Mixtos", nombre:"Karen"},
+    {dep:"Cajero Principal y Mixtos", nombre:"Lizbeth"}, {dep:"Cajero Principal y Mixtos", nombre:"Nallely"},
+    {dep:"Cajero Principal y Mixtos", nombre:"Eileen"}, {dep:"Cajero Principal y Mixtos", nombre:"Zurizadai"},
+    {dep:"Cajero Principal y Mixtos", nombre:"Luz"}, {dep:"Promotoría", nombre:"Michel"},
+    {dep:"Promotoría", nombre:"Gustavo"}, {dep:"Promotoría", nombre:"Karla"},
+    {dep:"Promotoría", nombre:"Omar"}, {dep:"Promotoría", nombre:"Faviola"},
+    {dep:"Promotoría", nombre:"Ernesto"}, {dep:"Cajas abono", nombre:"Arlette"},
+    {dep:"Cajas abono", nombre:"Minerva"}, {dep:"Cajas abono", nombre:"Beatriz"},
+    {dep:"Cajas abono", nombre:"Rosmery"}, {dep:"Cajas abono", nombre:"Jesús"},
+    {dep:"Cajas abono", nombre:"Lourdes"}, {dep:"Afore", nombre:"Karen Afore"},
+    {dep:"Afore", nombre:"Anthony"}
+];
+
+let empleados = JSON.parse(localStorage.getItem("cf_emp")) || datosBase.map(e => ({...e, vacaciones:[], especiales:[], entradas11:[], horario:{}}));
+
+function obtenerSemana(){
+    let hoy = new Date();
+    let proximoLunes = new Date(hoy);
+    proximoLunes.setDate(hoy.getDate() + ( (7 - hoy.getDay() + 1) % 7 || 7));
+    let dias=[];
+    for(let i=0;i<7;i++){
+        let d = new Date(proximoLunes);
+        d.setDate(proximoLunes.getDate() + i);
+        let iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        dias.push({ nombre:["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"][i], num:d.getDate(), iso:iso });
+    }
+    return dias;
+}
+
+function generar(){
+    let dias = obtenerSemana();
+    empleados.forEach(e => e.horario = {});
+
+    for(let d=0; d<7; d++){
+        let diaNum = dias[d].num;
+        empleados.forEach(e => {
+            if(e.vacaciones.includes(dias[d].iso)) e.horario[d] = "VAC";
+            else if(e.especiales.includes(dias[d].iso)) e.horario[d] = "D";
+            
+            if(e.dep === "Afore" && [15,16,20].includes(diaNum)) if(!e.horario[d]) e.horario[d] = "-"; 
+            if(e.nombre === "Fabiola" && [15,16,20].includes(diaNum)) if(!e.horario[d]) e.horario[d] = "-";
+        });
+    }
+
+    const departamentos = ["Cajero Principal y Mixtos", "Promotoría", "Cajas abono", "Afore"];
+
+    departamentos.forEach(dep => {
+        let grupo = empleados.filter(e => e.dep === dep);
+        let diasSorteados = [0,1,2,3,4,5,6].sort(() => Math.random() - 0.5);
+
+        diasSorteados.forEach(d => {
+            let diaNum = dias[d].num;
+            let cupoMax = 2;
+            if(dep === "Afore") cupoMax = 1;
+            if([15,16,20].includes(diaNum)) {
+                if(dep === "Cajero Principal y Mixtos") cupoMax = 1; 
+                if(dep === "Cajas abono") cupoMax = 1;
+                if(dep === "Afore") cupoMax = 0;
+            }
+
+            let asignados = grupo.filter(e => e.horario[d] === "D" || e.horario[d] === "VAC").length;
+            let faltan = cupoMax - asignados;
+
+            if(faltan > 0) {
+                let candidatos = grupo.filter(e => !e.horario[d] && getDescansos(e) < 2);
+                if(dep === "Promotoría" && [15,16,20].includes(diaNum)) {
+                    candidatos = candidatos.filter(e => e.nombre === "Ernesto" || e.nombre === "Faviola");
+                }
+                candidatos.sort(() => Math.random() - 0.5);
+                for(let i=0; i<faltan && i<candidatos.length; i++){
+                    candidatos[i].horario[d] = "D";
+                }
+            }
+        });
+
+        grupo.forEach(emp => {
+            let actual = getDescansos(emp);
+            if(actual < 2) {
+                let libres = [0,1,2,3,4,5,6].filter(d => {
+                    if(emp.horario[d]) return false;
+                    let dNum = dias[d].num;
+                    if(emp.nombre === "Fabiola" && [15,16,20].includes(dNum)) return false;
+                    if(emp.dep === "Afore" && [15,16,20].includes(dNum)) return false;
+                    if(emp.dep === "Promotoría" && [15,16,20].includes(dNum) && emp.nombre !== "Ernesto" && emp.nombre !== "Faviola") return false;
+                    let cMax = (dep === "Afore") ? 1 : 2;
+                    if([15,16,20].includes(dNum)) {
+                        if(dep === "Cajero Principal y Mixtos" || dep === "Cajas abono") cMax = 1;
+                        if(dep === "Afore") cMax = 0;
+                    }
+                    return grupo.filter(e => e.horario[d] === "D" || e.horario[d] === "VAC").length < cMax;
+                });
+                libres.sort(() => Math.random() - 0.5);
+                for(let i=0; i < (2-actual) && i < libres.length; i++) emp.horario[libres[i]] = "D";
+            }
+        });
+    });
+
+    for(let d=0; d<7; d++){
+        departamentos.forEach(dep => {
+            let activos = empleados.filter(e => e.dep === dep && !e.horario[d]);
+            let turnosGral = (dep === "Afore") ? ["12-1", "1-2", "2-3"] : ["12-1", "1-2", "2-3", "3-4"];
+            turnosGral.sort(() => Math.random() - 0.5);
+            activos.forEach((e, i) => {
+                let comida = (e.nombre === "Fabiola") ? (((d > 0) && (e.horario[d-1] === "D" || e.horario[d-1] === "VAC")) ? "4-5" : "4-6") : (e.nombre === "Ernesto" ? "12:30-1:30" : turnosGral[i % turnosGral.length]);
+                e.horario[d] = (e.entradas11 && e.entradas11.includes(dias[d].iso)) ? "11:00 / " + comida : comida;
+            });
+        });
+    }
+    mostrar();
+    localStorage.setItem("cf_emp", JSON.stringify(empleados));
+}
+
+function getDescansos(emp) { return Object.values(emp.horario).filter(v => v === "D").length; }
+
+function mostrar(){
+    let dias = obtenerSemana();
+    let html = `<tr><th style="width:22%">Nombre</th>`;
+    dias.forEach(d => html += `<th>${d.nombre}<br>${d.num}</th>`);
+    html += `</tr>`;
+    let depActual = "";
+    const orden = ["Cajero Principal y Mixtos", "Promotoría", "Cajas abono", "Afore"];
+    let final = [];
+    orden.forEach(dep => final = final.concat(empleados.filter(e => e.dep === dep)));
+    final.forEach(e => {
+        if(e.dep !== depActual){ html += `<tr><td colspan="8" class="dep-row">${e.dep}</td></tr>`; depActual = e.dep; }
+        html += `<tr><td class="nombre-col">${e.nombre}</td>`;
+        for(let i=0; i<7; i++){
+            let v = e.horario[i] || "-";
+            let c = (v === "D" || v.includes("D")) ? "descanso" : (v === "VAC" ? "vacaciones" : "");
+            html += `<td class="${c}">${v}</td>`;
+        }
+        html += `</tr>`;
+    });
+    document.getElementById("tabla").innerHTML = html;
+}
+
+function mostrarVistaCompleta() {
+    let tabla = document.getElementById("tabla").innerHTML;
+    if(tabla === "") return alert("Genera los horarios primero");
+    document.getElementById("contenido-full").innerHTML = `<div style="padding:10px; background:#102a43; color:white; text-align:center; font-weight:bold;">Horarios Gaby 🧸</div><table style="width:100%">${tabla}</table>`;
+    document.getElementById("menu-principal").style.display = "none";
+    document.getElementById("vista-completa").style.display = "block";
+    history.pushState({view: 'full'}, '');
+}
+
+window.onpopstate = function() { document.getElementById("vista-completa").style.display = "none"; document.getElementById("menu-principal").style.display = "block"; };
+
+function guardarVacaciones(){
+    let i = document.getElementById("empVac").value, f1 = document.getElementById("vac1").value, f2 = document.getElementById("vac2").value;
+    if(!f1 || !f2) return alert("Fechas incompletas");
+    let inicio = new Date(f1 + "T00:00:00"), fin = new Date(f2 + "T00:00:00");
+    while(inicio <= fin){
+        let iso = `${inicio.getFullYear()}-${String(inicio.getMonth()+1).padStart(2,'0')}-${String(inicio.getDate()).padStart(2,'0')}`;
+        if(!empleados[i].vacaciones.includes(iso)) empleados[i].vacaciones.push(iso);
+        inicio.setDate(inicio.getDate()+1);
+    }
+    alert("Vacaciones registradas");
+    localStorage.setItem("cf_emp", JSON.stringify(empleados));
+}
+
+function guardarEspeciales(){
+    let i = document.getElementById("empVac").value;
+    let f1 = document.getElementById("diaEsp1").value;
+    let f2 = document.getElementById("diaEsp2").value;
+    
+    if(!f1 && !f2) return alert("Selecciona al menos un día");
+
+    const registrar = (fecha) => {
+        if(!fecha) return;
+        if(empleados[i].nombre === "Fabiola" && [15,16,20].includes(parseInt(fecha.split('-')[2]))) {
+             alert("Día " + fecha + " no permitido para Fabiola");
+             return;
+        }
+        if(!empleados[i].especiales.includes(fecha)) empleados[i].especiales.push(fecha);
+    };
+
+    registrar(f1);
+    registrar(f2);
+    alert("Configuración de descanso especial guardada");
+    localStorage.setItem("cf_emp", JSON.stringify(empleados));
+}
+
+function guardarEntrada11(){
+    let i = document.getElementById("empVac").value, f = document.getElementById("diaEntrada11").value;
+    if(!f) return alert("Selecciona una fecha");
+    if(!empleados[i].entradas11) empleados[i].entradas11 = [];
+    if(!empleados[i].entradas11.includes(f)) empleados[i].entradas11.push(f);
+    alert("Entrada a las 11:00 AM fijada");
+    localStorage.setItem("cf_emp", JSON.stringify(empleados));
+}
+
+function reiniciar(){ 
+    if(confirm("¿Deseas resetear todo?")) { 
+        localStorage.removeItem("cf_emp");
+        empleados = datosBase.map(e => ({...e, vacaciones:[], especiales:[], entradas11:[], horario:{}}));
+        document.getElementById("tabla").innerHTML = "";
+        alert("Todo limpio.");
+    } 
+}
+
+function cargarSelect(){
+    let sel = document.getElementById("empVac");
+    sel.innerHTML = "";
+    empleados.forEach((e,i) => { let op = document.createElement("option"); op.value = i; op.textContent = e.nombre; sel.appendChild(op); });
+}
+
+cargarSelect();
+mostrar();
+</script>
 </body>
 </html>
