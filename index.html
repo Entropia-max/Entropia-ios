@@ -117,7 +117,7 @@ function generar(){
             if(e.vacaciones.includes(dias[d].iso)) e.horario[d] = "VAC";
             else if(e.especiales.includes(dias[d].iso)) e.horario[d] = "D";
             
-            // Bloquear días prohibidos para que no se asigne descanso aleatorio ahí
+            // Bloquear días inquebrantables con guión para que no se asignen
             if(e.dep === "Afore" && [15,16,20].includes(diaNum)) if(!e.horario[d]) e.horario[d] = "-"; 
             if(e.nombre === "Fabiola" && [15,16,20].includes(diaNum)) if(!e.horario[d]) e.horario[d] = "-";
         });
@@ -131,9 +131,9 @@ function generar(){
         
         grupo.forEach((emp, idx) => {
             let actual = Object.values(emp.horario).filter(v => v === "D" || v === "VAC").length;
-            let intentos = 0;
             
-            // Bucle principal para buscar días libres respetando a los vecinos
+            // FASE 1: Intento Ideal (Respeta vecinos, cupos máximos operativos y prohibiciones)
+            let intentos = 0;
             while(actual < 2 && intentos < 100) {
                 let d = Math.floor(Math.random() * 7);
                 let dNum = dias[d].num;
@@ -161,26 +161,16 @@ function generar(){
                 intentos++;
             }
 
-            // Bucle de respaldo por si el cupo fue muy estricto y no logró los 2 días (Ignora vecinos si es estrictamente necesario, pero respeta cupo por área)
+            // FASE 2: Respaldo de Emergencia EXTREMO (Asegura los 2 descansos sí o sí)
+            // Aquí ignoramos vecinos y cupos máximos si es estrictamente necesario para que no queden en 0.
             if (actual < 2) {
                 for(let d=0; d<7 && actual < 2; d++) {
-                    let dNum = dias[d].num;
-                    if(!emp.horario[d] || emp.horario[d] === "-") {
-                        if(emp.horario[d] === "-" && (emp.nombre === "Fabiola" || dep === "Afore")) continue; // Regla de oro inquebrantable
-                        
-                        let ocupacionDia = grupo.filter(e => e.horario[d] === "D" || e.horario[d] === "VAC").length;
-                        let cupoMax = (dep === "Afore") ? 1 : 2;
-                        
-                        if([15,16,20].includes(dNum)) {
-                            if(dep === "Cajero Principal y Mixtos" || dep === "Cajas abono") cupoMax = 1;
-                            if(dep === "Afore") cupoMax = 0;
-                            if(dep === "Promotoría" && emp.nombre !== "Ernesto" && emp.nombre !== "Faviola") cupoMax = 0;
-                        }
-                        
-                        if(ocupacionDia < cupoMax) {
-                            emp.horario[d] = "D";
-                            actual++;
-                        }
+                    let yaOcupado = emp.horario[d];
+                    
+                    // Solo evitamos sobreescribir vacaciones, descansos ya asignados, y las reglas inquebrantables (-)
+                    if(yaOcupado !== "VAC" && yaOcupado !== "D" && yaOcupado !== "-") {
+                        emp.horario[d] = "D"; // ASIGNACIÓN FORZOSA
+                        actual++;
                     }
                 }
             }
