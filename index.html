@@ -42,11 +42,12 @@
     <div class="card">
         <label>Colaborador:</label>
         <select id="empVac"></select>
+        
         <div style="display:flex; gap:5px; margin-top:5px;">
-            <input type="date" id="vac1" title="Inicio Vacaciones">
-            <input type="date" id="vac2" title="Fin Vacaciones">
+            <input type="date" id="vac1" title="Día Vacación 1">
+            <input type="date" id="vac2" title="Día Vacación 2">
         </div>
-        <button class="btn" onclick="guardarVacaciones()">Asignar Vacaciones</button>
+        <button class="btn" onclick="guardarVacaciones()">Asignar Día(s) de Vacaciones</button>
         
         <div style="display:flex; gap:5px; margin-top:10px;">
             <input type="date" id="diaEsp1" title="Especial 1">
@@ -59,7 +60,7 @@
     </div>
 
     <div class="card">
-        <button class="btn" style="background:#8b5cf6;" onclick="generar()">🔄 GENERAR HORARIOS ÓPTIMOS</button>
+        <button class="btn" style="background:#8b5cf6;" onclick="generar()">🔄 GENERAR HORARIOS</button>
         <div style="display:flex; gap:4px; margin-top:8px;">
             <button class="btn" onclick="mostrarVistaCompleta()">Pantalla Completa</button>
             <button class="btn-red" onclick="reiniciar()">Limpiar Todo</button>
@@ -256,16 +257,22 @@ window.onpopstate = function() {
     document.getElementById("menu-principal").style.display = "block"; 
 };
 
+// Nueva función de vacaciones modificada
 function guardarVacaciones(){
-    let i = document.getElementById("empVac").value, f1 = document.getElementById("vac1").value, f2 = document.getElementById("vac2").value;
-    if(!f1 || !f2) return alert("Fechas incompletas");
-    let inicio = new Date(f1 + "T00:00:00"), fin = new Date(f2 + "T00:00:00");
-    while(inicio <= fin){
-        let iso = `${inicio.getFullYear()}-${String(inicio.getMonth()+1).padStart(2,'0')}-${String(inicio.getDate()).padStart(2,'0')}`;
-        if(!empleados[i].vacaciones.includes(iso)) empleados[i].vacaciones.push(iso);
-        inicio.setDate(inicio.getDate()+1);
-    }
-    alert("Vacaciones registradas");
+    let i = document.getElementById("empVac").value;
+    let f1 = document.getElementById("vac1").value;
+    let f2 = document.getElementById("vac2").value;
+    
+    if(!f1 && !f2) return alert("Selecciona al menos un día de vacaciones");
+
+    const registrar = (f) => { 
+        if(f && !empleados[i].vacaciones.includes(f)) empleados[i].vacaciones.push(f); 
+    };
+
+    registrar(f1); 
+    registrar(f2);
+    
+    alert("Día(s) de vacaciones registrados");
     localStorage.setItem("cf_emp", JSON.stringify(empleados));
 }
 
