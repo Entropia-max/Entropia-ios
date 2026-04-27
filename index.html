@@ -110,66 +110,80 @@ function generar(){
     let dias = obtenerSemana();
     empleados.forEach(e => e.horario = {});
 
-    // 1. Asignar Vacaciones y Descansos Especiales primero
+    // 1. Marcar Vacaciones, Especiales y Reglas Inamovibles
     for(let d=0; d<7; d++){
         let diaNum = dias[d].num;
         empleados.forEach(e => {
             if(e.vacaciones.includes(dias[d].iso)) e.horario[d] = "VAC";
             else if(e.especiales.includes(dias[d].iso)) e.horario[d] = "D";
             
-            // Bloquear días inquebrantables con guión para que no se asignen
-            if(e.dep === "Afore" && [15,16,20].includes(diaNum)) if(!e.horario[d]) e.horario[d] = "-"; 
-            if(e.nombre === "Fabiola" && [15,16,20].includes(diaNum)) if(!e.horario[d]) e.horario[d] = "-";
+            // Bloqueo de fechas críticas (15, 16, 20)
+            if((e.dep === "Afore" || e.nombre === "Fabiola") && [15,16,20].includes(diaNum)) {
+                if(!e.horario[d]) e.horario[d] = "-"; 
+            }
         });
     }
 
     const departamentos = ["Cajero Principal y Mixtos", "Promotoría", "Cajas abono", "Afore"];
 
-    // 2. Asignar descansos garantizando 2 por persona
+    // 2. Asignar descansos con DISPERSIÓN (No juntos)
     departamentos.forEach(dep => {
         let grupo = empleados.filter(e => e.dep === dep);
         
         grupo.forEach((emp, idx) => {
             let actual = Object.values(emp.horario).filter(v => v === "D" || v === "VAC").length;
-            
-            // FASE 1: Intento Ideal (Respeta vecinos, cupos máximos operativos y prohibiciones)
             let intentos = 0;
-            while(actual < 2 && intentos < 100) {
+            
+            while(actual < 2 && intentos < 200) {
                 let d = Math.floor(Math.random() * 7);
                 let dNum = dias[d].num;
 
-                let yaOcupado = emp.horario[d];
+                // REGLA DE DISPERSIÓN: No elegir un día pegado a otro descanso ya asignado
+                let esDiaAdyacente = (emp.horario[d-1] === "D" || emp.horario[d-1] === "VAC" || emp.horario[d+1] === "D" || emp.horario[d+1] === "VAC");
+                
                 let vecinoArribaD = (idx > 0 && (grupo[idx-1].horario[d] === "D" || grupo[idx-1].horario[d] === "VAC"));
                 let vecinoAbajoD = (idx < grupo.length - 1 && (grupo[idx+1].horario[d] === "D" || grupo[idx+1].horario[d] === "VAC"));
 
                 let ocupacionDia = grupo.filter(e => e.horario[d] === "D" || e.horario[d] === "VAC").length;
                 let cupoMax = (dep === "Afore") ? 1 : 2;
                 
+                // Regla especial para fechas 15, 16, 20 (Solo 1 por área, excepto Afore 0)
                 if([15,16,20].includes(dNum)) {
-                    if(dep === "Cajero Principal y Mixtos" || dep === "Cajas abono") cupoMax = 1;
-                    if(dep === "Afore") cupoMax = 0;
+                    cupoMax = (dep === "Afore") ? 0 : 1;
                 }
 
-                let diaProhibido = false;
-                if(dep === "Promotoría" && [15,16,20].includes(dNum) && emp.nombre !== "Ernesto" && emp.nombre !== "Faviola") diaProhibido = true;
-                if(yaOcupado === "-") diaProhibido = true;
+                let prohibidoPromotoria = (dep === "Promotoría" && [15,16,20].includes(dNum) && emp.nombre !== "Ernesto" && emp.nombre !== "Faviola");
 
-                if(!yaOcupado && !diaProhibido && !vecinoArribaD && !vecinoAbajoD && ocupacionDia < cupoMax) {
+                if(!emp.horario[d] && !prohibidoPromotoria && !vecinoArribaD && !vecinoAbajoD && !esDiaAdyacente && ocupacionDia < cupoMax) {
                     emp.horario[d] = "D";
                     actual++;
                 }
                 intentos++;
             }
 
-            // FASE 2: Respaldo de Emergencia EXTREMO (Asegura los 2 descansos sí o sí)
-            // Aquí ignoramos vecinos y cupos máximos si es estrictamente necesario para que no queden en 0.
+            // FASE DE EMERGENCIA: Si no pudo alejarlos por falta de espacio, los asigna donde pueda para cumplir con los 2 descansos
             if (actual < 2) {
                 for(let d=0; d<7 && actual < 2; d++) {
-                    let yaOcupado = emp.horario[d];
-                    
-                    // Solo evitamos sobreescribir vacaciones, descansos ya asignados, y las reglas inquebrantables (-)
-                    if(yaOcupado !== "VAC" && yaOcupado !== "D" && yaOcupado !== "-") {
-                        emp.horario[d] = "D"; // ASIGNACIÓN FORZOSA
+                    let dNum = dias[d].num;
+                    if(!emp.horario[d]) {
+                        let ocupacionDia = grupo.filter(e => e.horario[d] === "D" || e.horario[d] === "VAC").length;
+                        let cupoMax = (dep === "Afore") ? 1 : 2;
+                        if([15,16,20].includes(dNum)) cupoMax = (dep === "Afore") ? 0 : 1;
+                        
+                        if(ocupacionDia < cupoMax) {
+                            emp.horario[d] = "D";
+                            actual++;
+                        }
+                    }
+                }
+            }
+            
+            // FASE EXTREMA (Garantía Total): Si aún le falta descanso, rompe reglas de operación pero NO las de fechas críticas
+            if (actual < 2) {
+                for(let d=0; d<7 && actual < 2; d++) {
+                    if(!emp.horario[d] || emp.horario[d] === "-") {
+                        if(emp.horario[d] === "-" && (emp.nombre === "Fabiola" || dep === "Afore")) continue; 
+                        emp.horario[d] = "D";
                         actual++;
                     }
                 }
@@ -177,19 +191,15 @@ function generar(){
         });
     });
 
-    // Limpiar los guiones "-" temporales
-    empleados.forEach(e => {
-        for(let d=0; d<7; d++) {
-            if(e.horario[d] === "-") delete e.horario[d];
-        }
-    });
+    // Limpiar marcas temporales
+    empleados.forEach(e => { for(let d=0; d<7; d++) { if(e.horario[d] === "-") delete e.horario[d]; } });
 
-    // 3. Asignar turnos de comida y entradas especiales a las 11:00 AM
+    // 3. Asignar turnos de comida
     for(let d=0; d<7; d++){
         departamentos.forEach(dep => {
             let activos = empleados.filter(e => e.dep === dep && !e.horario[d]);
             let turnosGral = (dep === "Afore") ? ["12-1", "1-2", "2-3"] : ["12-1", "1-2", "2-3", "3-4"];
-            turnosGral.sort(() => Math.random() - 0.5); // Rotar comidas aleatoriamente
+            turnosGral.sort(() => Math.random() - 0.5);
 
             activos.forEach((e, i) => {
                 let comida = "";
@@ -200,7 +210,6 @@ function generar(){
                 } else {
                     comida = turnosGral[i % turnosGral.length];
                 }
-
                 e.horario[d] = (e.entradas11 && e.entradas11.includes(dias[d].iso)) ? "11:00 / " + comida : comida;
             });
         });
@@ -216,7 +225,6 @@ function mostrar(){
     dias.forEach(d => html += `<th>${d.nombre}<br>${d.num}</th>`);
     html += `</tr>`;
     let depActual = "";
-    
     const orden = ["Cajero Principal y Mixtos", "Promotoría", "Cajas abono", "Afore"];
     let final = [];
     orden.forEach(dep => final = final.concat(empleados.filter(e => e.dep === dep)));
@@ -262,42 +270,29 @@ function guardarVacaciones(){
 }
 
 function guardarEspeciales(){
-    let i = document.getElementById("empVac").value;
-    let f1 = document.getElementById("diaEsp1").value;
-    let f2 = document.getElementById("diaEsp2").value;
-    
+    let i = document.getElementById("empVac").value, f1 = document.getElementById("diaEsp1").value, f2 = document.getElementById("diaEsp2").value;
     if(!f1 && !f2) return alert("Selecciona al menos un día");
-
-    const registrar = (fecha) => {
-        if(!fecha) return;
-        if(empleados[i].nombre === "Fabiola" && [15,16,20].includes(parseInt(fecha.split('-')[2]))) {
-             alert("Día " + fecha + " no permitido para Fabiola");
-             return;
-        }
-        if(!empleados[i].especiales.includes(fecha)) empleados[i].especiales.push(fecha);
-    };
-
-    registrar(f1);
-    registrar(f2);
-    alert("Configuración de descanso especial guardada");
+    const registrar = (f) => { if(f && !empleados[i].especiales.includes(f)) empleados[i].especiales.push(f); };
+    registrar(f1); registrar(f2);
+    alert("Guardado");
     localStorage.setItem("cf_emp", JSON.stringify(empleados));
 }
 
 function guardarEntrada11(){
     let i = document.getElementById("empVac").value, f = document.getElementById("diaEntrada11").value;
-    if(!f) return alert("Selecciona una fecha");
+    if(!f) return alert("Fecha inválida");
     if(!empleados[i].entradas11) empleados[i].entradas11 = [];
     if(!empleados[i].entradas11.includes(f)) empleados[i].entradas11.push(f);
-    alert("Entrada a las 11:00 AM fijada");
+    alert("Fijado a las 11:00 AM");
     localStorage.setItem("cf_emp", JSON.stringify(empleados));
 }
 
 function reiniciar(){ 
-    if(confirm("¿Deseas resetear todo?")) { 
+    if(confirm("¿Resetear todo?")) { 
         localStorage.removeItem("cf_emp");
         empleados = datosBase.map(e => ({...e, vacaciones:[], especiales:[], entradas11:[], horario:{}}));
         document.getElementById("tabla").innerHTML = "";
-        alert("Todo limpio.");
+        alert("Limpio.");
     } 
 }
 
