@@ -16,6 +16,7 @@
         body{font-family:Arial,sans-serif;background:#0a192f;color:white;margin:0;padding:0;overflow-x:hidden; -webkit-tap-highlight-color: transparent;}
         .header{background:#102a43;padding:15px;text-align:center;font-size:22px;font-weight:bold;border-bottom:2px solid #3b82f6;}
         #menu-principal {display: block;}
+        #menu-temporada {display: none;}
         #vista-completa {display: none; background: white; width: 100vw; height: 100vh; overflow: auto;}
         .card{background:#1c3d5a;margin:5px;padding:10px;border-radius:8px;}
         label{font-size:11px; display:block; margin-bottom:2px; color:#cbd5e1;}
@@ -24,6 +25,7 @@
         .btn-green{background:#22c55e;color:white;}
         .btn-red{background:#ef4444;color:white;}
         .btn-orange{background:#f59e0b;color:white;}
+        .btn-dark{background:#334155;color:white;}
         #zona{background:white;padding:2px;width:100%; min-height: 50px;}
         table{width:100%;border-collapse:collapse;font-size:9px;table-layout:fixed;color:black;}
         th{background:#f3f4f6;border:1px solid #000;padding:1px;font-size:9px;}
@@ -65,10 +67,40 @@
             <button class="btn" onclick="mostrarVistaCompleta()">Pantalla Completa</button>
             <button class="btn-red" onclick="reiniciar()">Limpiar Todo</button>
         </div>
+        <button class="btn btn-dark" style="margin-top:15px;" onclick="abrirMenuTemporada()">⚙️ Menú de Temporada (Gerencia)</button>
     </div>
 
     <div id="zona">
         <table id="tabla"></table>
+    </div>
+</div>
+
+<div id="menu-temporada">
+    <div class="header" style="background:#dc2626;">Gestión de Temporada Alta</div>
+    <div class="card">
+        <p style="font-size:12px; color:#94a3b8; margin-top:0;">Al activar un área, el sistema asignará <b>SOLO 1 DESCANSO</b> al azar dentro del rango de fechas. Los descansos especiales manuales seguirán siendo respetados.</p>
+        
+        <label>Área a modificar:</label>
+        <select id="depTemporada">
+            <option value="Cajero Principal y Mixtos">Cajero Principal y Mixtos</option>
+            <option value="Promotoría">Promotoría</option>
+            <option value="Cajas abono">Cajas abono</option>
+            <option value="Afore">Afore</option>
+        </select>
+        
+        <div style="display:flex; gap:5px; margin-top:5px;">
+            <input type="date" id="tempInicio" title="Inicio de Temporada">
+            <input type="date" id="tempFin" title="Fin de Temporada">
+        </div>
+        
+        <button class="btn btn-orange" style="margin-top:10px;" onclick="guardarTemporada()">Activar Rango para esta Área</button>
+        <button class="btn btn-red" style="margin-top:5px;" onclick="limpiarTemporada()">Desactivar Todo</button>
+    </div>
+    
+    <div class="card" id="lista-temporadas" style="font-size:12px;"></div>
+    
+    <div class="card">
+        <button class="btn" onclick="cerrarMenuTemporada()">⬅️ Volver al Menú Principal</button>
     </div>
 </div>
 
@@ -92,6 +124,7 @@ const datosBase = [
 ];
 
 let empleados = JSON.parse(localStorage.getItem("cf_emp")) || datosBase.map(e => ({...e, vacaciones:[], especiales:[], entradas11:[], horario:{}}));
+let temporadas = JSON.parse(localStorage.getItem("cf_temporadas")) || {};
 
 function obtenerSemana(){
     let hoy = new Date();
@@ -127,61 +160,77 @@ function generar(){
 
     const departamentos = ["Cajero Principal y Mixtos", "Promotoría", "Cajas abono", "Afore"];
 
-    // 2. Asignar descansos con DISPERSIÓN (No juntos)
+    // 2. Asignar descansos respetando Reglas y Temporadas
     departamentos.forEach(dep => {
         let grupo = empleados.filter(e => e.dep === dep);
+        let configTemp = temporadas[dep]; // Revisar si este departamento tiene temporada activa
         
+        // Identificar los días permitidos y si la semana cae en temporada
+        let diasPermitidos = [0,1,2,3,4,5,6];
+        let targetDescansosGral = 2;
+        
+        if(configTemp) {
+            let diasDentroDeRango = [];
+            for(let d=0; d<7; d++) {
+                if(dias[d].iso >= configTemp.inicio && dias[d].iso <= configTemp.fin) {
+                    diasDentroDeRango.push(d);
+                }
+            }
+            if(diasDentroDeRango.length > 0) {
+                targetDescansosGral = 1;
+                diasPermitidos = diasDentroDeRango;
+            }
+        }
+
         grupo.forEach((emp, idx) => {
             let actual = Object.values(emp.horario).filter(v => v === "D" || v === "VAC").length;
             let intentos = 0;
-            
-            while(actual < 2 && intentos < 200) {
-                let d = Math.floor(Math.random() * 7);
+            let target = targetDescansosGral;
+
+            while(actual < target && intentos < 200) {
+                // Se elige aleatoriamente solo de los días permitidos (toda la semana si es normal, o el rango si es temporada)
+                let d = diasPermitidos[Math.floor(Math.random() * diasPermitidos.length)];
                 let dNum = dias[d].num;
 
-                // REGLA DE DISPERSIÓN: No elegir un día pegado a otro descanso ya asignado
                 let esDiaAdyacente = (emp.horario[d-1] === "D" || emp.horario[d-1] === "VAC" || emp.horario[d+1] === "D" || emp.horario[d+1] === "VAC");
-                
                 let vecinoArribaD = (idx > 0 && (grupo[idx-1].horario[d] === "D" || grupo[idx-1].horario[d] === "VAC"));
                 let vecinoAbajoD = (idx < grupo.length - 1 && (grupo[idx+1].horario[d] === "D" || grupo[idx+1].horario[d] === "VAC"));
 
                 let ocupacionDia = grupo.filter(e => e.horario[d] === "D" || e.horario[d] === "VAC").length;
                 let cupoMax = (dep === "Afore") ? 1 : 2;
                 
-                // Regla especial para fechas 15, 16, 20 (Solo 1 por área, excepto Afore 0)
-                if([15,16,20].includes(dNum)) {
-                    cupoMax = (dep === "Afore") ? 0 : 1;
-                }
-
+                if([15,16,20].includes(dNum)) { cupoMax = (dep === "Afore") ? 0 : 1; }
                 let prohibidoPromotoria = (dep === "Promotoría" && [15,16,20].includes(dNum) && emp.nombre !== "Ernesto" && emp.nombre !== "Faviola");
 
-                if(!emp.horario[d] && !prohibidoPromotoria && !vecinoArribaD && !vecinoAbajoD && !esDiaAdyacente && ocupacionDia < cupoMax) {
+                // En temporada es más permisivo con la dispersión si es necesario, pero intenta mantenerla
+                let dispersionValida = (target === 1) ? true : (!esDiaAdyacente && !vecinoArribaD && !vecinoAbajoD);
+
+                if(!emp.horario[d] && !prohibidoPromotoria && ocupacionDia < cupoMax && dispersionValida) {
                     emp.horario[d] = "D";
                     actual++;
                 }
                 intentos++;
             }
 
-            // FASE DE EMERGENCIA: Si no pudo alejarlos por falta de espacio, los asigna donde pueda para cumplir con los 2 descansos
-            if (actual < 2) {
-                for(let d=0; d<7 && actual < 2; d++) {
+            // FASE DE EMERGENCIA
+            if (actual < target) {
+                for(let i=0; i<diasPermitidos.length && actual < target; i++) {
+                    let d = diasPermitidos[i];
                     let dNum = dias[d].num;
                     if(!emp.horario[d]) {
                         let ocupacionDia = grupo.filter(e => e.horario[d] === "D" || e.horario[d] === "VAC").length;
                         let cupoMax = (dep === "Afore") ? 1 : 2;
                         if([15,16,20].includes(dNum)) cupoMax = (dep === "Afore") ? 0 : 1;
                         
-                        if(ocupacionDia < cupoMax) {
-                            emp.horario[d] = "D";
-                            actual++;
-                        }
+                        if(ocupacionDia < cupoMax) { emp.horario[d] = "D"; actual++; }
                     }
                 }
             }
             
-            // FASE EXTREMA (Garantía Total): Si aún le falta descanso, rompe reglas de operación pero NO las de fechas críticas
-            if (actual < 2) {
-                for(let d=0; d<7 && actual < 2; d++) {
+            // FASE EXTREMA (Garantía Total)
+            if (actual < target) {
+                for(let i=0; i<diasPermitidos.length && actual < target; i++) {
+                    let d = diasPermitidos[i];
                     if(!emp.horario[d] || emp.horario[d] === "-") {
                         if(emp.horario[d] === "-" && (emp.nombre === "Fabiola" || dep === "Afore")) continue; 
                         emp.horario[d] = "D";
@@ -255,23 +304,16 @@ function mostrarVistaCompleta() {
 window.onpopstate = function() { 
     document.getElementById("vista-completa").style.display = "none"; 
     document.getElementById("menu-principal").style.display = "block"; 
+    document.getElementById("menu-temporada").style.display = "none"; 
 };
 
-// Nueva función de vacaciones modificada
 function guardarVacaciones(){
     let i = document.getElementById("empVac").value;
     let f1 = document.getElementById("vac1").value;
     let f2 = document.getElementById("vac2").value;
-    
     if(!f1 && !f2) return alert("Selecciona al menos un día de vacaciones");
-
-    const registrar = (f) => { 
-        if(f && !empleados[i].vacaciones.includes(f)) empleados[i].vacaciones.push(f); 
-    };
-
-    registrar(f1); 
-    registrar(f2);
-    
+    const registrar = (f) => { if(f && !empleados[i].vacaciones.includes(f)) empleados[i].vacaciones.push(f); };
+    registrar(f1); registrar(f2);
     alert("Día(s) de vacaciones registrados");
     localStorage.setItem("cf_emp", JSON.stringify(empleados));
 }
@@ -307,6 +349,62 @@ function cargarSelect(){
     let sel = document.getElementById("empVac");
     sel.innerHTML = "";
     empleados.forEach((e,i) => { let op = document.createElement("option"); op.value = i; op.textContent = e.nombre; sel.appendChild(op); });
+}
+
+// FUNCIONES DEL MENÚ DE TEMPORADA
+function abrirMenuTemporada() {
+    let pwd = prompt("Ingrese la contraseña de Gerencia:");
+    if (pwd === "GerenciaEntropia") {
+        document.getElementById("menu-principal").style.display = "none";
+        document.getElementById("menu-temporada").style.display = "block";
+        actualizarListaTemporadas();
+    } else if (pwd !== null) {
+        alert("Acceso denegado. Contraseña incorrecta.");
+    }
+}
+
+function cerrarMenuTemporada() {
+    document.getElementById("menu-temporada").style.display = "none";
+    document.getElementById("menu-principal").style.display = "block";
+}
+
+function guardarTemporada() {
+    let dep = document.getElementById("depTemporada").value;
+    let ini = document.getElementById("tempInicio").value;
+    let fin = document.getElementById("tempFin").value;
+    
+    if(!ini || !fin) return alert("Seleccione la fecha de inicio y fin.");
+    
+    temporadas[dep] = { inicio: ini, fin: fin };
+    localStorage.setItem("cf_temporadas", JSON.stringify(temporadas));
+    actualizarListaTemporadas();
+    alert("Temporada Alta configurada para " + dep);
+}
+
+function limpiarTemporada() {
+    if(confirm("¿Seguro que deseas desactivar la temporada alta para todas las áreas?")) {
+        temporadas = {};
+        localStorage.setItem("cf_temporadas", JSON.stringify(temporadas));
+        actualizarListaTemporadas();
+        alert("Todas las áreas han regresado a su horario normal.");
+    }
+}
+
+function actualizarListaTemporadas() {
+    let contenedor = document.getElementById("lista-temporadas");
+    let html = "<b>Áreas con Temporada Alta (1 Descanso):</b><br><br>";
+    let count = 0;
+    
+    for(let dep in temporadas) {
+        html += `<div style="background:#0f172a; padding:5px; margin-bottom:5px; border-radius:4px;">
+                    <span style="color:#f59e0b; font-weight:bold;">${dep}</span><br>
+                    Rango: ${temporadas[dep].inicio} al ${temporadas[dep].fin}
+                 </div>`;
+        count++;
+    }
+    
+    if(count === 0) { html += "<div style='color:#94a3b8;'>Ninguna configurada actualmente.</div>"; }
+    contenedor.innerHTML = html;
 }
 
 cargarSelect();
