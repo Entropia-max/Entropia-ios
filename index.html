@@ -3,578 +3,947 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#102a43">
+<meta name="theme-color" content="#0f172a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
 <title>Horarios Gaby 🧸</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-    body{font-family:Arial,sans-serif;background:#0a192f;color:white;margin:0;padding:0;overflow-x:hidden;}
-    .header{background:#102a43;padding:15px;text-align:center;font-size:22px;font-weight:bold;border-bottom:2px solid #3b82f6;}
-    #menu-principal {display: block;}
+    :root {
+        --bg-main: #0f172a;
+        --card-bg: #1e293b;
+        --accent-blue: #38bdf8;
+        --accent-green: #10b981;
+        --accent-purple: #a855f7;
+        --accent-orange: #f59e0b;
+        --accent-red: #ef4444;
+        --text-white: #f8fafc;
+    }
     
-    /* Configuración Full Screen para iOS sin scroll */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: var(--bg-main);
+        color: var(--text-white);
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+    
+    .header {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        padding: 18px;
+        text-align: center;
+        font-size: 22px;
+        font-weight: bold;
+        border-bottom: 2px solid var(--accent-blue);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+    /* Vistas de Navegación */
+    #vista-principal { 
+        display: flex; 
+        flex-direction: column; 
+        justify-content: center; 
+        align-items: center; 
+        min-height: 90vh; 
+        padding: 20px; 
+        box-sizing: border-box;
+    }
+    #vista-gerente, #vista-colaborador, #vista-buzon { display: none; }
+    
+    /* Botones con estilo juvenil y animación */
+    .menu-btn { 
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%); 
+        border: 2px solid var(--accent-blue); 
+        color: white; 
+        font-size: 19px; 
+        font-weight: bold; 
+        padding: 22px; 
+        margin: 14px 0; 
+        border-radius: 16px; 
+        cursor: pointer; 
+        width: 100%; 
+        max-width: 320px; 
+        box-shadow: 0 8px 20px rgba(56, 189, 248, 0.15); 
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+    }
+    
+    .menu-btn:active { 
+        transform: scale(0.95); 
+        box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
     #vista-completa { display: none; background: white; width: 100vw; height: 100vh; height: 100dvh; overflow: hidden; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 9999; }
-    #vista-completa-header { background: #102a43; padding: 10px; color: white; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; }
+    #vista-completa-header { background: #0f172a; padding: 10px; color: white; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent-blue); }
     #vista-completa-content { flex: 1; width: 100%; padding: 2px; box-sizing: border-box; background: white; }
-    
-    .card{background:#1c3d5a;margin:8px;padding:12px;border-radius:8px;}
-    label{font-size:12px; display:block; margin-bottom:2px; color:#cbd5e1; font-weight:bold;}
-    input,button,select{width:100%;padding:10px;margin-top:5px;border:none;border-radius:6px;font-size:14px;box-sizing:border-box;}
-    .btn{background:#3b82f6;color:white;font-weight:bold;cursor:pointer;}
-    .btn-green{background:#22c55e;color:white;}
-    .btn-red{background:#ef4444;color:white;}
-    .btn-orange{background:#f59e0b;color:white;}
-    .btn-blue{background:#0ea5e9;color:white; border: 1px solid white;}
-    
-    #zona{background:white;padding:2px;width:100%; min-height: 50px; margin-top:10px;}
-    
-    /* CSS Fluido Clamp para evitar scroll vertical en vista completa */
-    table{width:100%; height:100%; border-collapse:collapse; table-layout:fixed; color:black;}
-    th{background:#f3f4f6;border:1px solid #000;padding:1px;font-size:clamp(7px, 2.2vw, 11px);}
-    td{border:1px solid #000;padding:0;text-align:center;font-size:clamp(7px, 2vw, 11px); word-wrap:break-word; overflow:hidden;}
-    .dep-row{background:#f59e0b;color:black;font-weight:bold;text-align:left;padding-left:5px;font-size:clamp(8px, 2.5vw, 12px);}
-    
-    .descanso{background:#16a34a !important;color:white !important;font-weight:bold;}
-    .vacaciones{background:#0ea5e9 !important;color:white !important;font-weight:bold;}
-    .curso{background:#8b5cf6 !important;color:white !important;font-weight:bold;}
-    .nombre-col{text-align:left;padding-left:3px;font-weight:bold;background:#fafafa;width:22%;font-size:clamp(7px, 1.8vw, 10px);}
-</style>
-</head>
-<body>
+  
+    .card {
+        background: var(--card-bg);
+        margin: 12px 8px;
+        padding: 16px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }  
+    label { font-size: 13px; display: block; margin-bottom: 4px; color: #94a3b8; font-weight: bold; }  
+    input, button, select, textarea {
+        width: 100%;
+        padding: 12px;
+        margin-top: 6px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        box-sizing: border-box;
+    }  
+    .btn {
+        background: var(--accent-blue);
+        color: #0f172a;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.15s ease;
+    }  
+    .btn:active { transform: scale(0.97); }
+    .btn-green { background: var(--accent-green); color: white; }  
+    .btn-red { background: var(--accent-red); color: white; }  
+    .btn-orange { background: var(--accent-orange); color: white; }  
+    .btn-blue { background: #0284c7; color: white; border: 1px solid white; }  
+    .btn-purple { background: var(--accent-purple); color: white; }
+    .btn-volver { background: #475569; color: white; margin-bottom: 12px; }
+  
+    #zona { background: white; padding: 2px; width: 100%; min-height: 50px; margin-top: 10px; border-radius: 6px; overflow: hidden; }  
+  
+    table { width: 100%; height: 100%; border-collapse: collapse; table-layout: fixed; color: black; }  
+    th { background: #f1f5f9; border: 1px solid #000; padding: 2px; font-size: clamp(7px, 2.2vw, 11px); }  
+    td { border: 1px solid #000; padding: 0; text-align: center; font-size: clamp(7px, 2vw, 11px); word-wrap: break-word; overflow: hidden; }  
+    .dep-row { background: var(--accent-orange); color: black; font-weight: bold; text-align: left; padding-left: 5px; font-size: clamp(8px, 2.5vw, 12px); }  
+  
+    .descanso { background: #16a34a !important; color: white !important; font-weight: bold; }  
+    .vacaciones { background: #0284c7 !important; color: white !important; font-weight: bold; }  
+    .curso { background: #9333ea !important; color: white !important; font-weight: bold; }  
+    .nombre-col { text-align: left; padding-left: 3px; font-weight: bold; background: #fafafa; width: 22%; font-size: clamp(7px, 1.8vw, 10px); }
 
-<div id="menu-principal">
-    <div class="header">Horarios Gaby 🧸</div>
+    /* Estilos para listas de selección de días */
+    .dias-tag-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .dia-tag { 
+        background: #334155; 
+        color: var(--accent-blue); 
+        padding: 6px 10px; 
+        border-radius: 20px; 
+        font-size: 12px; 
+        display: flex; 
+        align-items: center; 
+        gap: 6px; 
+        border: 1px solid var(--accent-blue);
+    }
+    .dia-tag span { cursor: pointer; color: var(--accent-red); font-weight: bold; }
 
+    /* Tarjetas de Buzón */
+    .solicitud-card {
+        background: #0f172a;
+        border-left: 4px solid var(--accent-blue);
+        padding: 12px;
+        margin-bottom: 10px;
+        border-radius: 6px;
+    }
+</style>  
+</head>  
+<body>  
+
+<!-- PANTALLA PRINCIPAL -->
+<div id="vista-principal">
+    <div style="font-size: 42px; margin-bottom: 10px; filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.4));">🧸</div>
+    <div style="font-size: 26px; font-weight: 800; margin-bottom: 30px; color: var(--accent-blue); letter-spacing: 0.5px;">Horarios Gaby</div>
+    
+    <button class="menu-btn" onclick="abrirColaboradores()">
+        <span>👥</span> Colaboradores
+    </button>
+    <button class="menu-btn" style="border-color: var(--accent-orange); box-shadow: 0 8px 20px rgba(245, 158, 11, 0.15);" onclick="pedirPassword()">
+        <span>🔐</span> Gerente
+    </button>
+</div>
+
+<!-- VISTA COLABORADORES -->
+<div id="vista-colaborador">
+    <div class="header">Portal de Colaboradores 📋</div>
     <div class="card">
-        <label>1. Selecciona Colaborador:</label>
-        <select id="empVac" style="color:black; font-weight:bold;"></select>
-        
-        <label style="margin-top:10px;">2. ¿Qué acción deseas definir?</label>
-        <select id="accionMenu" onchange="cambiarAccionMenu(this.value)" style="color:black;">
-            <option value="">-- Selecciona una opción --</option>
-            <option value="VACACIONES">🏖️ VACACIONES</option>
-            <option value="HORARIO_ESPECIAL">⏰ HORARIO ESPECIAL (Entrada fija)</option>
-            <option value="CURSOS">📚 CURSOS</option>
-            <option value="DIAS_ESPECIALES">⭐️ DÍAS ESPECIALES (Descanso Fijo)</option>
-        </select>
-        <div id="contenedor-dinamico-accion" style="margin-top:12px; background:#102a43; padding:10px; border-radius:6px; display:none;"></div>
+        <button class="btn btn-volver" onclick="irAInicio()">⬅️ Volver al Menú Principal</button>
+        <label>1. Selecciona tu Nombre:</label>  
+        <select id="empColabSelect" style="color:black; font-weight:bold;"></select>  
+          
+        <label style="margin-top:10px;">2. ¿Qué deseas solicitar para la próxima semana?</label>  
+        <select id="accionColab" onchange="cambiarAccionColab(this.value)" style="color:black;">  
+            <option value="">-- Selecciona una opción --</option>  
+            <option value="VACACIONES">🏖️ Solicitar Vacaciones</option>  
+            <option value="DIAS_ESPECIALES">⭐️ Solicitar Día Especial / Descanso Fijo</option>  
+        </select>  
+        <div id="contenedor-dinamico-colab" style="margin-top:12px; background:#0f172a; padding:12px; border-radius:8px; display:none;"></div>  
     </div>
+</div>
 
-    <div class="card" style="border: 1px solid #10b981; background: #132c25;">
-        <label style="color: #10b981; font-weight: bold; font-size: 13px;">👥 Gestión de Colaboradores</label>
-        
-        <div style="margin-top:10px; background:#102a43; padding:10px; border-radius:6px;">
-            <label style="color:white; font-size:12px;">Agregar Nuevo:</label>
-            <input type="text" id="nuevoEmpNombre" placeholder="Nombre del colaborador" style="color:black; margin-bottom:5px;">
-            <select id="nuevoEmpDep" style="color:black; margin-bottom:5px;">
-                <option value="Cajero Principal y Mixtos">Cajero Principal y Mixtos</option>
-                <option value="Promotoría">Promotoría</option>
-                <option value="Cajas abono">Cajas abono</option>
-                <option value="Afore">Afore</option>
-            </select>
-            <button class="btn btn-green" onclick="agregarColaborador()">➕ Agregar Colaborador</button>
-            
-            <hr style="border:0; border-top:1px dashed #10b981; margin:15px 0;">
-            
-            <label style="color:white; font-size:12px;">Eliminar Existente:</label>
-            <select id="eliminarEmpSelect" style="color:black; margin-bottom:5px;"></select>
-            <button class="btn btn-red" onclick="eliminarColaborador()">🗑️ Eliminar Colaborador</button>
-        </div>
-    </div>
-
-    <div class="card" style="border: 1px solid #eab308; background: #1a2e40;">
-        <label style="color: #eab308; font-weight: bold; font-size: 13px;">⚡ Configuración de Temporada</label>
-        <select id="tipoTemporada" onchange="cambiarTemporada(this.value)" style="color:black; margin-top:5px; font-weight:bold;">
-            <option value="NORMAL">Normal (2 Descansos por semana)</option>
-            <option value="UN_DESCANSO">Día de Descanso Único (1 Descanso x Semana)</option>
-            <option value="DICIEMBRE">Horarios Diciembre (Festivos Automáticos)</option>
-        </select>
-
-        <div id="opcionesDiciembre" style="display:none; margin-top:10px; background:#102a43; padding:10px; border-radius:6px; border:1px dashed #eab308;">
-            <label style="color:white; margin-bottom:5px;">Aplicar descanso festivo para todos en:</label>
-            <div style="display:flex; gap:10px; margin-bottom:10px;">
-                <label style="display:flex; align-items:center; gap:5px; color:white; font-size:12px; font-weight:normal;">
-                    <input type="checkbox" id="dic25" onchange="guardarTemporadaEstado()" style="width:auto; margin:0; transform:scale(1.2);"> 25 de Dic
-                </label>
-                <label style="display:flex; align-items:center; gap:5px; color:white; font-size:12px; font-weight:normal;">
-                    <input type="checkbox" id="ene1" onchange="guardarTemporadaEstado()" style="width:auto; margin:0; transform:scale(1.2);"> 1 de Ene
-                </label>
-            </div>
-            <label style="color:white; font-size:11px;">Resto de la semana:</label>
-            <select id="dicDescansos" onchange="guardarTemporadaEstado()" style="color:black;">
-                <option value="1">1 Descanso Normal + Festivo</option>
-                <option value="2">2 Descansos Normales + Festivo</option>
-            </select>
-        </div>
-    </div>
-
+<!-- VISTA GERENTE -->
+<div id="vista-gerente">
+    <div class="header">Panel de Gerencia - Horarios Gaby 🧸</div>  
     <div class="card">
-        <button class="btn" style="background:#8b5cf6;" onclick="generar()">🔄 GENERAR HORARIOS ÓPTIMOS</button>
-        <div style="display:flex; gap:4px; margin-top:8px;">
-            <button class="btn" onclick="mostrarVistaCompleta()">Ver Pantalla Completa</button>
-            <button class="btn-red" onclick="reiniciar()">Limpiar Todo</button>
-        </div>
-    </div>
+        <button class="btn btn-volver" onclick="irAInicio()">⬅️ Volver al Menú Principal</button>
+        <button class="menu-btn" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); border-color: var(--accent-purple); width: 100%; max-width: none; margin: 0 0 15px 0; padding: 15px;" onclick="abrirBuzon()">
+            <span>📬</span> Buzón de Solicitudes <span id="badgeBuzon" style="background: var(--accent-red); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; display: none;">0</span>
+        </button>
 
-    <div style="padding: 0 8px;"><label style="color: #cbd5e1; font-size: 11px;">* Toca cualquier celda del horario final para editarla manualmente.</label></div>
+        <label>1. Selecciona Colaborador (Edición Rápida):</label>  
+        <select id="empVac" style="color:black; font-weight:bold;"></select>  
+          
+        <label style="margin-top:10px;">2. ¿Qué acción deseas definir?</label>  
+        <select id="accionMenu" onchange="cambiarAccionMenu(this.value)" style="color:black;">  
+            <option value="">-- Selecciona una opción --</option>  
+            <option value="VACACIONES">🏖️ VACACIONES</option>  
+            <option value="HORARIO_ESPECIAL">⏰ HORARIO ESPECIAL (Entrada fija)</option>  
+            <option value="CURSOS">📚 CURSOS</option>  
+            <option value="DIAS_ESPECIALES">⭐️ DÍAS ESPECIALES (Descanso Fijo)</option>  
+        </select>  
+        <div id="contenedor-dinamico-accion" style="margin-top:12px; background:#0f172a; padding:12px; border-radius:8px; display:none;"></div>  
+    </div>  
+
+    <div class="card" style="border: 1px solid var(--accent-green); background: #064e3b22;">  
+        <label style="color: var(--accent-green); font-weight: bold; font-size: 13px;">👥 Gestión de Colaboradores</label>  
+        <div style="margin-top:10px; background:#0f172a; padding:12px; border-radius:8px;">  
+            <label style="color:white; font-size:12px;">Agregar Nuevo:</label>  
+            <input type="text" id="nuevoEmpNombre" placeholder="Nombre del colaborador" style="color:black; margin-bottom:5px;">  
+            <select id="nuevoEmpDep" style="color:black; margin-bottom:5px;">  
+                <option value="Cajero Principal y Mixtos">Cajero Principal y Mixtos</option>  
+                <option value="Promotoría">Promotoría</option>  
+                <option value="Cajas abono">Cajas abono</option>  
+                <option value="Afore">Afore</option>  
+            </select>  
+            <button class="btn btn-green" onclick="agregarColaborador()">➕ Agregar Colaborador</button>  
+              
+            <hr style="border:0; border-top:1px dashed var(--accent-green); margin:15px 0;">  
+              
+            <label style="color:white; font-size:12px;">Eliminar Existente:</label>  
+            <select id="eliminarEmpSelect" style="color:black; margin-bottom:5px;"></select>  
+            <button class="btn btn-red" onclick="eliminarColaborador()">🗑️ Eliminar Colaborador</button>  
+        </div>  
+    </div>  
+
+    <div class="card" style="border: 1px solid var(--accent-orange); background: #78350f22;">  
+        <label style="color: var(--accent-orange); font-weight: bold; font-size: 13px;">⚡ Configuración de Temporada</label>  
+        <select id="tipoTemporada" onchange="cambiarTemporada(this.value)" style="color:black; margin-top:5px; font-weight:bold;">  
+            <option value="NORMAL">Normal (2 Descansos por semana)</option>  
+            <option value="UN_DESCANSO">Día de Descanso Único (1 Descanso x Semana)</option>  
+            <option value="DICIEMBRE">Horarios Diciembre (Festivos Automáticos)</option>  
+        </select>  
+
+        <div id="opcionesDiciembre" style="display:none; margin-top:10px; background:#0f172a; padding:12px; border-radius:8px; border:1px dashed var(--accent-orange);">  
+            <label style="color:white; margin-bottom:5px;">Aplicar descanso festivo para todos en:</label>  
+            <div style="display:flex; gap:10px; margin-bottom:10px;">  
+                <label style="display:flex; align-items:center; gap:5px; color:white; font-size:12px; font-weight:normal;">  
+                    <input type="checkbox" id="dic25" onchange="guardarTemporadaEstado()" style="width:auto; margin:0; transform:scale(1.2);"> 25 de Dic  
+                </label>  
+                <label style="display:flex; align-items:center; gap:5px; color:white; font-size:12px; font-weight:normal;">  
+                    <input type="checkbox" id="ene1" onchange="guardarTemporadaEstado()" style="width:auto; margin:0; transform:scale(1.2);"> 1 de Ene  
+                </label>  
+            </div>  
+            <label style="color:white; font-size:11px;">Resto de la semana:</label>  
+            <select id="dicDescansos" onchange="guardarTemporadaEstado()" style="color:black;">  
+                <option value="1">1 Descanso Normal + Festivo</option>  
+                <option value="2">2 Descansos Normales + Festivo</option>  
+            </select>  
+        </div>  
+    </div>  
+
+    <div class="card">  
+        <button class="btn btn-purple" onclick="generar()">🔄 GENERAR HORARIOS ÓPTIMOS</button>  
+        <div style="display:flex; gap:4px; margin-top:8px;">  
+            <button class="btn" onclick="mostrarVistaCompleta()">Ver Pantalla Completa</button>  
+            <button class="btn-red" onclick="reiniciar()">Limpiar Todo</button>  
+        </div>  
+    </div>  
+
+    <div style="padding: 0 8px;"><label style="color: #cbd5e1; font-size: 11px;">* Toca cualquier celda del horario final para editarla manualmente.</label></div>  
     <div id="zona"><table id="tabla"></table></div>
-</div>
+</div>  
 
-<div id="vista-completa">
-    <div id="vista-completa-header">
-        <div style="font-weight:bold; font-size:16px;">Horarios Gaby 🧸</div>
-        <div style="display:flex; gap:5px;">
-            <button class="btn btn-blue" style="width:auto; padding:5px 10px; margin:0; font-size:12px;" onclick="descargarComoImagen()">📸 Guardar Foto</button>
-            <button class="btn btn-red" style="width:auto; padding:5px 10px; margin:0; font-size:12px;" onclick="cerrarVistaCompleta()">❌ Cerrar</button>
-        </div>
-    </div>
-    <div id="vista-completa-content"></div>
-</div>
-
-<div id="modal-editar" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.75); z-index:10000; justify-content:center; align-items:center;">
-    <div style="background:white; color:black; padding:20px; border-radius:10px; width:90%; max-width:380px; box-sizing:border-box; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
-        <h3 id="modal-titulo" style="margin-top:0; color:#102a43; border-bottom: 2px solid #3b82f6; padding-bottom:5px;">Editar Turno</h3>
-        <label style="color:#333; margin-top:10px;">Selecciona el nuevo turno o estado:</label>
-        <select id="modal-nuevo-turno" onchange="mostrarInputPersonalizado(this.value)" style="color:black; border:1px solid #777; margin-bottom:10px;">
-            <option value="D">D (Descanso)</option>
-            <option value="VAC">VAC (Vacaciones)</option>
-            <option value="CURSO">CURSO</option>
-            <option value="12-1">12-1</option>
-            <option value="1-2">1-2</option>
-            <option value="2-3">2-3</option>
-            <option value="3-4">3-4</option>
-            <option value="4-5">4-5</option>
-            <option value="4-6">4-6</option>
-            <option value="12:30-1:30">12:30-1:30</option>
-            <option value="PERSONALIZADO">Otro / Personalizado...</option>
-        </select>
-        <input type="text" id="modal-turno-personalizado" placeholder="Ej: 11:00 AM / 1-2" style="display:none; margin-top:2px; border:1px solid #777; color:black; padding:8px;">
-        <div style="display:flex; gap:10px; margin-top:18px;">
-            <button class="btn btn-green" onclick="guardarEdicionManual()">Guardar Cambios</button>
-            <button class="btn btn-red" onclick="cerrarEditorManual()">Cancelar</button>
-        </div>
+<!-- VISTA BUZÓN DE GERENCIA -->
+<div id="vista-buzon">
+    <div class="header">Buzón de Solicitudes 📬</div>
+    <div class="card">
+        <button class="btn btn-volver" onclick="volverAGerente()">⬅️ Volver a Panel Gerente</button>
+        <div id="listaSolicitudesBuzon"></div>
     </div>
 </div>
 
-<script>
-const datosBase = [
-    {dep:"Cajero Principal y Mixtos", nombre:"Fabiola"}, {dep:"Cajero Principal y Mixtos", nombre:"Karen"},
-    {dep:"Cajero Principal y Mixtos", nombre:"Lizbeth"}, {dep:"Cajero Principal y Mixtos", nombre:"Nallely"},
-    {dep:"Cajero Principal y Mixtos", nombre:"Eileen"}, {dep:"Cajero Principal y Mixtos", nombre:"Zurizadai"},
-    {dep:"Cajero Principal y Mixtos", nombre:"Luz"}, {dep:"Promotoría", nombre:"Michel"},
-    {dep:"Promotoría", nombre:"Gustavo"}, {dep:"Promotoría", nombre:"Karla"},
-    {dep:"Promotoría", nombre:"Omar"}, {dep:"Promotoría", nombre:"Faviola"},
-    {dep:"Promotoría", nombre:"Ernesto"}, {dep:"Cajas abono", nombre:"Arlette"},
-    {dep:"Cajas abono", nombre:"Minerva"}, {dep:"Cajas abono", nombre:"Beatriz"},
-    {dep:"Cajas abono", nombre:"Rosmery"}, {dep:"Cajas abono", nombre:"Jesús"},
-    {dep:"Cajas abono", nombre:"Lourdes"}, {dep:"Afore", nombre:"Karen Afore"},
-    {dep:"Afore", nombre:"Anthony"}
-];
+<!-- VISTA PANTALLA COMPLETA -->
+<div id="vista-completa">  
+    <div id="vista-completa-header">  
+        <div style="font-weight:bold; font-size:16px;">Horarios Gaby 🧸</div>  
+        <div style="display:flex; gap:5px;">  
+            <button class="btn btn-blue" style="width:auto; padding:5px 10px; margin:0; font-size:12px;" onclick="descargarComoImagen()">📸 Guardar Foto</button>  
+            <button class="btn btn-red" style="width:auto; padding:5px 10px; margin:0; font-size:12px;" onclick="cerrarVistaCompleta()">❌ Cerrar</button>  
+        </div>  
+    </div>  
+    <div id="vista-completa-content"></div>  
+</div>  
 
-let empleados = JSON.parse(localStorage.getItem("cf_emp")) || datosBase.map((e, i) => ({...e, id: i, vacaciones:[], especiales:[], cursos:[], horariosEspeciales:{}, entradas11:[], horario:{}}));
-empleados.forEach((e, i) => { if(e.id === undefined) e.id = i; });
+<!-- MODAL EDITOR MANUAL -->
+<div id="modal-editar" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.75); z-index:10000; justify-content:center; align-items:center;">  
+    <div style="background:white; color:black; padding:20px; border-radius:10px; width:90%; max-width:380px; box-sizing:border-box; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">  
+        <h3 id="modal-titulo" style="margin-top:0; color:#102a43; border-bottom: 2px solid var(--accent-blue); padding-bottom:5px;">Editar Turno</h3>  
+        <label style="color:#333; margin-top:10px;">Selecciona el nuevo turno o estado:</label>  
+        <select id="modal-nuevo-turno" onchange="mostrarInputPersonalizado(this.value)" style="color:black; border:1px solid #777; margin-bottom:10px;">  
+            <option value="D">D (Descanso)</option>  
+            <option value="VAC">VAC (Vacaciones)</option>  
+            <option value="CURSO">CURSO</option>  
+            <option value="12-1">12-1</option>  
+            <option value="1-2">1-2</option>  
+            <option value="2-3">2-3</option>  
+            <option value="3-4">3-4</option>  
+            <option value="4-5">4-5</option>  
+            <option value="4-6">4-6</option>  
+            <option value="12:30-1:30">12:30-1:30</option>  
+            <option value="PERSONALIZADO">Otro / Personalizado...</option>  
+        </select>  
+        <input type="text" id="modal-turno-personalizado" placeholder="Ej: 11:00 AM / 1-2" style="display:none; margin-top:2px; border:1px solid #777; color:black; padding:8px;">  
+        <div style="display:flex; gap:10px; margin-top:18px;">  
+            <button class="btn btn-green" onclick="guardarEdicionManual()">Guardar Cambios</button>  
+            <button class="btn btn-red" onclick="cerrarEditorManual()">Cancelar</button>  
+        </div>  
+    </div>  
+</div>  
 
-let editEmpIdx = null; let editDiaIdx = null;
+<!-- SCRIPT DE FIREBASE Y LÓGICA DE LA APLICACIÓN -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-function obtenerSemana(){
-    let hoy = new Date(); let proximoLunes = new Date(hoy);
-    proximoLunes.setDate(hoy.getDate() + ( (7 - hoy.getDay() + 1) % 7 || 7));
-    let dias=[];
-    for(let i=0;i<7;i++){
-        let d = new Date(proximoLunes); d.setDate(proximoLunes.getDate() + i);
-        let iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-        dias.push({ nombre:["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"][i], num:d.getDate(), iso:iso });
-    }
-    return dias;
-}
+  const firebaseConfig = {
+    apiKey: "AIzaSyCjgmkby8Kj6D3oScz3SOMBOIT0RwFM2UY",
+    authDomain: "horas-61c52.firebaseapp.com",
+    projectId: "horas-61c52",
+    storageBucket: "horas-61c52.firebasestorage.app",
+    messagingSenderId: "924774257828",
+    appId: "1:924774257828:web:a574e8deb339f4d6004231",
+    measurementId: "G-MCND0VC0SQ"
+  };
 
-function cambiarAccionMenu(opcion) {
-    let cont = document.getElementById("contenedor-dinamico-accion");
-    if(!opcion) { cont.style.display = "none"; cont.innerHTML = ""; return; }
-    cont.style.display = "block"; let html = "";
-    if(opcion === "VACACIONES") {
-        html = `<label>Rango de Vacaciones:</label><div style="display:flex; gap:5px; margin-bottom:5px;"><input type="date" id="vac1" style="color:black;"><input type="date" id="vac2" style="color:black;"></div><button class="btn" onclick="ejecutarAccionGuardar('VACACIONES')">Asignar Vacaciones</button>`;
-    } else if(opcion === "HORARIO_ESPECIAL") {
-        html = `<label>Fecha del Horario Especial:</label><input type="date" id="horEspFecha" style="color:black; margin-bottom:5px;"><label>Texto Especial:</label><input type="text" id="horEspTexto" value="11:00 AM" style="color:black; margin-bottom:5px; padding:8px; border-radius:6px; width:100%;"><button class="btn btn-green" onclick="ejecutarAccionGuardar('HORARIO_ESPECIAL')">Asignar Horario Entrada</button>`;
-    } else if(opcion === "CURSOS") {
-        html = `<label>Fecha del Curso:</label><input type="date" id="cursoFecha" style="color:black; margin-bottom:5px;"><button class="btn" style="background:#8b5cf6;" onclick="ejecutarAccionGuardar('CURSOS')">Asignar Curso</button>`;
-    } else if(opcion === "DIAS_ESPECIALES") {
-        html = `<label>Selecciona el o los días solicitados:</label><div style="display:flex; gap:5px; margin-bottom:5px;"><input type="date" id="diaEsp1" style="color:black;"><input type="date" id="diaEsp2" style="color:black;"></div><button class="btn btn-orange" onclick="ejecutarAccionGuardar('DIAS_ESPECIALES')">Fijar Descanso Especial</button>`;
-    }
-    cont.innerHTML = html;
-}
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const docRef = doc(db, "sistema", "horarios_gaby_data");
 
-function ejecutarAccionGuardar(tipo) {
-    let selectEmp = document.getElementById("empVac");
-    let empOrig = empleados.find(e => e.id === parseInt(selectEmp.value));
-    if(!empOrig.vacaciones) empOrig.vacaciones = []; if(!empOrig.especiales) empOrig.especiales = [];
-    if(!empOrig.cursos) empOrig.cursos = []; if(!empOrig.horariosEspeciales) empOrig.horariosEspeciales = {};
+  const datosBase = [  
+      {dep:"Cajero Principal y Mixtos", nombre:"Fabiola"}, {dep:"Cajero Principal y Mixtos", nombre:"Karen"},  
+      {dep:"Cajero Principal y Mixtos", nombre:"Lizbeth"}, {dep:"Cajero Principal y Mixtos", nombre:"Nallely"},  
+      {dep:"Cajero Principal y Mixtos", nombre:"Eileen"}, {dep:"Cajero Principal y Mixtos", nombre:"Zurizadai"},  
+      {dep:"Cajero Principal y Mixtos", nombre:"Luz"}, {dep:"Promotoría", nombre:"Michel"},  
+      {dep:"Promotoría", nombre:"Gustavo"}, {dep:"Promotoría", nombre:"Karla"},  
+      {dep:"Promotoría", nombre:"Omar"}, {dep:"Promotoría", nombre:"Faviola"},  
+      {dep:"Promotoría", nombre:"Ernesto"}, {dep:"Cajas abono", nombre:"Arlette"},  
+      {dep:"Cajas abono", nombre:"Minerva"}, {dep:"Cajas abono", nombre:"Beatriz"},  
+      {dep:"Cajas abono", nombre:"Rosmery"}, {dep:"Cajas abono", nombre:"Jesús"},  
+      {dep:"Cajas abono", nombre:"Lourdes"}, {dep:"Afore", nombre:"Karen Afore"},  
+      {dep:"Afore", nombre:"Anthony"}  
+  ];  
 
-    if(tipo === 'VACACIONES') {
-        let f1 = document.getElementById("vac1").value, f2 = document.getElementById("vac2").value;
-        if(!f1 || !f2) return alert("Fechas incompletas");
-        let inicio = new Date(f1 + "T00:00:00"), fin = new Date(f2 + "T00:00:00");
-        while(inicio <= fin){
-            let iso = `${inicio.getFullYear()}-${String(inicio.getMonth()+1).padStart(2,'0')}-${String(inicio.getDate()).padStart(2,'0')}`;
-            if(!empOrig.vacaciones.includes(iso)) empOrig.vacaciones.push(iso);
-            inicio.setDate(inicio.getDate()+1);
-        }
-        alert("Vacaciones registradas correctamente.");
-    } else if(tipo === 'HORARIO_ESPECIAL') {
-        let f = document.getElementById("horEspFecha").value, t = document.getElementById("horEspTexto").value;
-        if(!f || !t) return alert("Campos incompletos");
-        empOrig.horariosEspeciales[f] = t; alert("Horario especial configurado.");
-    } else if(tipo === 'CURSOS') {
-        let f = document.getElementById("cursoFecha").value;
-        if(!f) return alert("Fecha incorrecta");
-        if(!empOrig.cursos.includes(f)) empOrig.cursos.push(f); alert("Curso asignado.");
-    } else if(tipo === 'DIAS_ESPECIALES') {
-        let f1 = document.getElementById("diaEsp1").value, f2 = document.getElementById("diaEsp2").value;
-        if(!f1 && !f2) return alert("Selecciona una fecha");
-        const reg = (f) => {
-            if(!f) return;
-            if(empOrig.nombre === "Fabiola" && [15,16,20].includes(parseInt(f.split('-')[2]))) return alert("Día " + f + " prohibido para Fabiola");
-            if(!empOrig.especiales.includes(f)) empOrig.especiales.push(f);
-        };
-        reg(f1); reg(f2); alert("Descanso especial fijado.");
-    }
-    localStorage.setItem("cf_emp", JSON.stringify(empleados));
-    document.getElementById("accionMenu").value = ""; cambiarAccionMenu("");
-}
+  window.empleados = JSON.parse(localStorage.getItem("cf_emp")) || datosBase.map((e, i) => ({...e, id: i, vacaciones:[], especiales:[], cursos:[], horariosEspeciales:{}, entradas11:[], horario:{}}));  
+  window.solicitudesBuzon = [];
+  let diasSeleccionadosTemp = [];
+  let editEmpIdx = null; let editDiaIdx = null;  
 
-// NUEVAS FUNCIONES: Agregar y Eliminar Colaborador
-function agregarColaborador() {
-    let nombre = document.getElementById("nuevoEmpNombre").value.trim();
-    let dep = document.getElementById("nuevoEmpDep").value;
+  // Sincronización en Tiempo Real con Firestore
+  onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+          let data = docSnap.data();
+          window.empleados = data.empleados || window.empleados;
+          window.solicitudesBuzon = data.solicitudesBuzon || [];
+          localStorage.setItem("cf_emp", JSON.stringify(window.empleados));
+          actualizarBadgeBuzon();
+          if(document.getElementById("vista-gerente").style.display === "block") {
+              cargarSelect();
+              mostrar();
+          }
+          if(document.getElementById("vista-colaborador").style.display === "block") {
+              cargarSelectColaborador();
+          }
+          if(document.getElementById("vista-buzon").style.display === "block") {
+              renderBuzon();
+          }
+      } else {
+          sincronizarFirestore();
+      }
+  });
+
+  window.sincronizarFirestore = async function() {
+      try {
+          await setDoc(docRef, { 
+              empleados: window.empleados,
+              solicitudesBuzon: window.solicitudesBuzon 
+          });
+          localStorage.setItem("cf_emp", JSON.stringify(window.empleados));
+          actualizarBadgeBuzon();
+      } catch(e) {
+          console.error("Error al sincronizar con Firebase:", e);
+      }
+  }
+
+  function actualizarBadgeBuzon() {
+      let badge = document.getElementById("badgeBuzon");
+      let pendientes = window.solicitudesBuzon.filter(s => s.estado === "PENDIENTE").length;
+      if(badge) {
+          if(pendientes > 0) {
+              badge.innerText = pendientes;
+              badge.style.display = "inline-block";
+          } else {
+              badge.style.display = "none";
+          }
+      }
+  }
+
+  // Navegación entre vistas
+  window.abrirColaboradores = function() {
+      document.getElementById("vista-principal").style.display = "none";
+      document.getElementById("vista-colaborador").style.display = "block";
+      cargarSelectColaborador();
+  }
+
+  window.pedirPassword = function() {
+      let pass = prompt("Ingresa la contraseña de Gerente:");
+      if(pass === "PEKITAS") {
+          document.getElementById("vista-principal").style.display = "none";
+          document.getElementById("vista-gerente").style.display = "block";
+          cargarSelect(); cargarTemporadaEstado(); mostrar();
+      } else if(pass !== null) {
+          alert("Contraseña incorrecta.");
+      }
+  }
+
+  window.irAInicio = function() {
+      document.getElementById("vista-colaborador").style.display = "none";
+      document.getElementById("vista-gerente").style.display = "none";
+      document.getElementById("vista-buzon").style.display = "none";
+      document.getElementById("vista-principal").style.display = "flex";
+  }
+
+  window.abrirBuzon = function() {
+      document.getElementById("vista-gerente").style.display = "none";
+      document.getElementById("vista-buzon").style.display = "block";
+      renderBuzon();
+  }
+
+  window.volverAGerente = function() {
+      document.getElementById("vista-buzon").style.display = "none";
+      document.getElementById("vista-gerente").style.display = "block";
+  }
+
+  window.obtenerSemana = function() {  
+      let hoy = new Date(); let proximoLunes = new Date(hoy);  
+      proximoLunes.setDate(hoy.getDate() + ( (7 - hoy.getDay() + 1) % 7 || 7));  
+      let dias=[];  
+      for(let i=0;i<7;i++){  
+          let d = new Date(proximoLunes); d.setDate(proximoLunes.getDate() + i);  
+          let iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;  
+          dias.push({ nombre:["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"][i], num:d.getDate(), iso:iso });  
+      }  
+      return dias;  
+  }  
+
+  // --- SECCIÓN COLABORADORES ---
+  window.cargarSelectColaborador = function() {
+      let sel = document.getElementById("empColabSelect"); sel.innerHTML = "";  
+      let empsSelect = [...window.empleados].sort((a,b) => a.nombre.localeCompare(b.nombre));  
+      empsSelect.forEach(e => {   
+          let op = document.createElement("option"); op.value = e.id; op.textContent = `${e.nombre} (${e.dep})`; sel.appendChild(op);   
+      });
+  }
+
+  window.cambiarAccionColab = function(opcion) {
+      let cont = document.getElementById("contenedor-dinamico-colab");  
+      diasSeleccionadosTemp = [];
+      if(!opcion) { cont.style.display = "none"; cont.innerHTML = ""; return; }  
+      cont.style.display = "block"; 
+      renderFormularioColab(opcion);
+  }
+
+  function renderFormularioColab(opcion) {
+      let cont = document.getElementById("contenedor-dinamico-colab");
+      let titulo = opcion === "VACACIONES" ? "Vacaciones" : "Descanso Especial";
+      
+      let html = `<label>Selecciona un día a la vez para agregarlo:</label>
+      <div style="display:flex; gap:5px; margin-bottom:5px;">
+          <input type="date" id="pickerDiaColab" style="color:black;">
+          <button class="btn btn-green" style="width: auto; padding: 0 15px;" onclick="agregarDiaColabTemp()">➕ Añadir Día</button>
+      </div>
+      <label>Días seleccionados para ${titulo}:</label>
+      <div id="listaDiasTemp" class="dias-tag-container"></div>
+      
+      <label style="margin-top:12px;">Motivo o explicación:</label>
+      <textarea id="motivoColab" rows="3" placeholder="Explica brevemente la razón de tus días solicitados..." style="color:black; font-family:sans-serif; margin-bottom:10px;"></textarea>
+      
+      <button class="btn btn-orange" onclick="guardarSolicitudColaborador('${opcion}')">Enviar Solicitud a Gerencia</button>`;
+      
+      cont.innerHTML = html;
+      renderTagsDias();
+  }
+
+  window.agregarDiaColabTemp = function() {
+      let val = document.getElementById("pickerDiaColab").value;
+      if(!val) return alert("Selecciona una fecha primero.");
+      if(!diasSeleccionadosTemp.includes(val)) {
+          diasSeleccionadosTemp.push(val);
+          renderTagsDias();
+      }
+      document.getElementById("pickerDiaColab").value = "";
+  }
+
+  window.eliminarDiaTemp = function(dia) {
+      diasSeleccionadosTemp = diasSeleccionadosTemp.filter(d => d !== dia);
+      renderTagsDias();
+  }
+
+  function renderTagsDias() {
+      let cont = document.getElementById("listaDiasTemp");
+      if(!cont) return;
+      if(diasSeleccionadosTemp.length === 0) {
+          cont.innerHTML = `<span style="font-size:11px; color:#cbd5e1;">Ningún día seleccionado aún.</span>`;
+          return;
+      }
+      cont.innerHTML = diasSeleccionadosTemp.map(d => `<div class="dia-tag">${d} <span onclick="eliminarDiaTemp('${d}')">✕</span></div>`).join("");
+  }
+
+  window.guardarSolicitudColaborador = function(tipo) {
+      let selectEmp = document.getElementById("empColabSelect");  
+      let empOrig = window.empleados.find(e => e.id === parseInt(selectEmp.value));  
+      let motivo = document.getElementById("motivoColab").value.trim();
+
+      if(diasSeleccionadosTemp.length === 0) return alert("Debes agregar al menos un día a la lista.");
+      if(!motivo) return alert("Por favor escribe el motivo de tu solicitud.");
+
+      if(!empOrig.vacaciones) empOrig.vacaciones = []; 
+      if(!empOrig.especiales) empOrig.especiales = [];  
+
+      // Asignar directamente a su perfil
+      diasSeleccionadosTemp.forEach(f => {
+          if(tipo === 'VACACIONES') {
+              if(!empOrig.vacaciones.includes(f)) empOrig.vacaciones.push(f);
+          } else {
+              if(!empOrig.especiales.includes(f)) empOrig.especiales.push(f);
+          }
+      });
+
+      // Crear entrada en el buzón de la gerente
+      let nuevaSolicitud = {
+          id: Date.now(),
+          empId: empOrig.id,
+          empNombre: empOrig.nombre,
+          empDep: empOrig.dep,
+          tipo: tipo,
+          dias: [...diasSeleccionadosTemp],
+          motivo: motivo,
+          fechaEnvio: new Date().toLocaleDateString(),
+          estado: "PENDIENTE"
+      };
+
+      window.solicitudesBuzon.push(nuevaSolicitud);
+      sincronizarFirestore();
+
+      alert("¡Solicitud enviada con éxito! Ya se reflejó en tu calendario y la gerente ha recibido la notificación en su buzón.");  
+      document.getElementById("accionColab").value = ""; 
+      cambiarAccionColab("");
+  }
+
+  // --- BUZÓN DE GERENCIA ---
+  function renderBuzon() {
+      let cont = document.getElementById("listaSolicitudesBuzon");
+      if(!cont) return;
+
+      if(window.solicitudesBuzon.length === 0) {
+          cont.innerHTML = `<p style="text-align:center; color:#cbd5e1;">No hay solicitudes registradas por los colaboradores.</p>`;
+          return;
+      }
+
+      cont.innerHTML = window.solicitudesBuzon.map(sol => {
+          let estadoColor = sol.estado === "APROBADO" ? "#10b981" : (sol.estado === "RECHAZADO" ? "#ef4444" : "#f59e0b");
+          return `<div class="solicitud-card" style="border-left-color: ${estadoColor}">
+              <div style="display:flex; justify-size:space-between; align-items:center;">
+                  <strong style="font-size:15px;">${sol.empNombre} (${sol.empDep})</strong>
+                  <span style="font-size:11px; background:${estadoColor}; color:black; padding:2px 6px; border-radius:4px; font-weight:bold;">${sol.estado}</span>
+              </div>
+              <div style="font-size:12px; margin-top:5px; color:#cbd5e1;">
+                  <strong>Solicita:</strong> ${sol.tipo} <br>
+                  <strong>Días:</strong> ${sol.dias.join(", ")} <br>
+                  <strong>Motivo:</strong> ${sol.motivo}
+              </div>
+              ${sol.estado === "PENDIENTE" ? `
+              <div style="display:flex; gap:8px; margin-top:10px;">
+                  <button class="btn btn-green" style="padding:6px; font-size:12px;" onclick="responderSolicitud(${sol.id}, 'APROBADO')">Aprobar</button>
+                  <button class="btn btn-red" style="padding:6px; font-size:12px;" onclick="responderSolicitud(${sol.id}, 'RECHAZADO')">Rechazar</button>
+              </div>` : ''}
+          </div>`;
+      }).reverse().join("");
+  }
+
+  window.responderSolicitud = function(idSol, nuevoEstado) {
+      let sol = window.solicitudesBuzon.find(s => s.id === idSol);
+      if(!sol) return;
+
+      sol.estado = nuevoEstado;
+
+      if(nuevoEstado === "RECHAZADO") {
+          let emp = window.empleados.find(e => e.id === sol.empId);
+          if(emp) {
+              if(sol.tipo === "VACACIONES" && emp.vacaciones) {
+                  emp.vacaciones = emp.vacaciones.filter(d => !sol.dias.includes(d));
+              } else if(emp.especiales) {
+                  emp.especiales = emp.especiales.filter(d => !sol.dias.includes(d));
+              }
+          }
+      }
+
+      sincronizarFirestore();
+      renderBuzon();
+      alert(`Solicitud ${nuevoEstado.toLowerCase()} correctamente.`);
+  }
+
+  // --- ACCIONES EN MENÚ GERENTE ---
+  window.cambiarAccionMenu = function(opcion) {  
+      let cont = document.getElementById("contenedor-dinamico-accion");  
+      diasSeleccionadosTemp = [];
+      if(!opcion) { cont.style.display = "none"; cont.innerHTML = ""; return; }  
+      cont.style.display = "block"; let html = "";  
+      
+      if(opcion === "VACACIONES" || opcion === "DIAS_ESPECIALES") {  
+          let titulo = opcion === "VACACIONES" ? "Vacaciones" : "Descanso Especial";
+          html = `<label>Selecciona un día a la vez:</label>
+          <div style="display:flex; gap:5px; margin-bottom:5px;">
+              <input type="date" id="pickerDiaGerente" style="color:black;">
+              <button class="btn btn-green" style="width: auto; padding: 0 15px;" onclick="agregarDiaGerenteTemp()">➕ Añadir Día</button>
+          </div>
+          <label>Días fijados para ${titulo}:</label>
+          <div id="listaDiasTemp" class="dias-tag-container"></div>
+          <button class="btn btn-orange" style="margin-top:10px;" onclick="ejecutarAccionGuardar('${opcion}')">Asignar Días Seleccionados</button>`;  
+      } else if(opcion === "HORARIO_ESPECIAL") {  
+          html = `<label>Fecha del Horario Especial:</label><input type="date" id="horEspFecha" style="color:black; margin-bottom:5px;"><label>Texto Especial:</label><input type="text" id="horEspTexto" value="11:00 AM" style="color:black; margin-bottom:5px; padding:8px; border-radius:6px; width:100%;"><button class="btn btn-green" onclick="ejecutarAccionGuardar('HORARIO_ESPECIAL')">Asignar Horario Entrada</button>`;  
+      } else if(opcion === "CURSOS") {  
+          html = `<label>Fecha del Curso:</label><input type="date" id="cursoFecha" style="color:black; margin-bottom:5px;"><button class="btn" style="background:#8b5cf6;" onclick="ejecutarAccionGuardar('CURSOS')">Asignar Curso</button>`;  
+      }  
+      cont.innerHTML = html;  
+  }  
+
+  window.agregarDiaGerenteTemp = function() {
+      let val = document.getElementById("pickerDiaGerente").value;
+      if(!val) return alert("Selecciona una fecha.");
+      if(!diasSeleccionadosTemp.includes(val)) {
+          diasSeleccionadosTemp.push(val);
+          renderTagsDias();
+      }
+      document.getElementById("pickerDiaGerente").value = "";
+  }
+  
+  window.ejecutarAccionGuardar = function(tipo) {  
+      let selectEmp = document.getElementById("empVac");  
+      let empOrig = window.empleados.find(e => e.id === parseInt(selectEmp.value));  
+      if(!empOrig.vacaciones) empOrig.vacaciones = []; if(!empOrig.especiales) empOrig.especiales = [];  
+      if(!empOrig.cursos) empOrig.cursos = []; if(!empOrig.horariosEspeciales) empOrig.horariosEspeciales = {};  
     
-    if(!nombre) return alert("Por favor ingresa el nombre del colaborador.");
+      if(tipo === 'VACACIONES') {  
+          if(diasSeleccionadosTemp.length === 0) return alert("Selecciona al menos un día.");
+          diasSeleccionadosTemp.forEach(f => { if(!empOrig.vacaciones.includes(f)) empOrig.vacaciones.push(f); });
+          alert("Vacaciones registradas.");  
+      } else if(tipo === 'HORARIO_ESPECIAL') {  
+          let f = document.getElementById("horEspFecha").value, t = document.getElementById("horEspTexto").value;  
+          if(!f || !t) return alert("Campos incompletos");  
+          empOrig.horariosEspeciales[f] = t; alert("Horario especial configurado.");  
+      } else if(tipo === 'CURSOS') {  
+          let f = document.getElementById("cursoFecha").value;  
+          if(!f) return alert("Fecha incorrecta");  
+          if(!empOrig.cursos.includes(f)) empOrig.cursos.push(f); alert("Curso asignado.");  
+      } else if(tipo === 'DIAS_ESPECIALES') {  
+          if(diasSeleccionadosTemp.length === 0) return alert("Selecciona al menos un día.");
+          diasSeleccionadosTemp.forEach(f => {
+              if(empOrig.nombre === "Fabiola" && [15,16,20].includes(parseInt(f.split('-')[2]))) {
+                  alert("Día " + f + " prohibido para Fabiola");
+              } else {
+                  if(!empOrig.especiales.includes(f)) empOrig.especiales.push(f);
+              }
+          });
+          alert("Descansos especiales fijados.");  
+      }  
+      sincronizarFirestore();
+      document.getElementById("accionMenu").value = ""; cambiarAccionMenu("");  
+  }  
+  
+  window.agregarColaborador = function() {  
+      let nombre = document.getElementById("nuevoEmpNombre").value.trim();  
+      let dep = document.getElementById("nuevoEmpDep").value;  
+      if(!nombre) return alert("Por favor ingresa el nombre del colaborador.");  
+      let nuevoId = window.empleados.length > 0 ? Math.max(...window.empleados.map(e => e.id)) + 1 : 0;  
+      let nuevoEmp = { id: nuevoId, dep: dep, nombre: nombre, vacaciones: [], especiales: [], cursos: [], horariosEspeciales: {}, entradas11: [], horario: {} };  
+      window.empleados.push(nuevoEmp);  
+      sincronizarFirestore();
+      document.getElementById("nuevoEmpNombre").value = "";  
+      cargarSelect(); mostrar();  
+      alert(`Colaborador ${nombre} agregado con éxito.`);  
+  }  
+  
+  window.eliminarColaborador = function() {  
+      let select = document.getElementById("eliminarEmpSelect");  
+      if(!select.value) return alert("No hay colaboradores para eliminar.");  
+      let id = parseInt(select.value);  
+      let emp = window.empleados.find(e => e.id === id);  
+      if(!emp) return alert("Selecciona un colaborador válido.");  
+      if(confirm(`¿Estás seguro de eliminar a ${emp.nombre}?`)) {  
+          window.empleados = window.empleados.filter(e => e.id !== id);  
+          sincronizarFirestore();
+          cargarSelect(); mostrar();  
+          alert("Colaborador eliminado correctamente.");  
+      }  
+  }  
+  
+  window.cambiarTemporada = function(val) {  
+      document.getElementById("opcionesDiciembre").style.display = (val === "DICIEMBRE") ? "block" : "none";  
+      guardarTemporadaEstado();  
+  }  
+  
+  window.guardarTemporadaEstado = function() {  
+      localStorage.setItem("cf_temp_tipo", document.getElementById("tipoTemporada").value);  
+      localStorage.setItem("cf_temp_dic25", document.getElementById("dic25").checked);  
+      localStorage.setItem("cf_temp_ene1", document.getElementById("ene1").checked);  
+      localStorage.setItem("cf_temp_dicDesc", document.getElementById("dicDescansos").value);  
+  }  
+  
+  window.cargarTemporadaEstado = function() {  
+      let tipo = localStorage.getItem("cf_temp_tipo") || "NORMAL";  
+      document.getElementById("tipoTemporada").value = tipo;  
+      document.getElementById("dic25").checked = localStorage.getItem("cf_temp_dic25") === "true";  
+      document.getElementById("ene1").checked = localStorage.getItem("cf_temp_ene1") === "true";  
+      document.getElementById("dicDescansos").value = localStorage.getItem("cf_temp_dicDesc") || "1";  
+      cambiarTemporada(tipo);  
+  }  
+  
+  window.generar = function(){  
+      let exito = false, resultado = null;  
+      for(let i=0; i<800; i++) {  
+          resultado = simularGeneracion(false);  
+          if(resultado !== null) { exito = true; break; }  
+      }  
+      if(!exito) {  
+          resultado = simularGeneracion(true);  
+          alert("⚠️ Distribución compleja detectada. Se aplicó la distribución óptima posible.");  
+      }  
+      if(resultado) window.empleados = resultado;  
+      mostrar();  
+      sincronizarFirestore();
+  }  
+  
+  window.simularGeneracion = function(relajado) {  
+      let dias = obtenerSemana();  
+      let copia = JSON.parse(JSON.stringify(window.empleados));  
+      copia.forEach(e => e.horario = {});  
     
-    // Generar un ID único basado en el máximo actual
-    let nuevoId = empleados.length > 0 ? Math.max(...empleados.map(e => e.id)) + 1 : 0;
+      let tipoTemporada = document.getElementById("tipoTemporada").value;  
+      let isDic25Active = document.getElementById("dic25").checked;  
+      let isEne1Active = document.getElementById("ene1").checked;  
+      let dicDesc = parseInt(document.getElementById("dicDescansos").value);  
     
-    let nuevoEmp = {
-        id: nuevoId,
-        dep: dep,
-        nombre: nombre,
-        vacaciones: [],
-        especiales: [],
-        cursos: [],
-        horariosEspeciales: {},
-        entradas11: [],
-        horario: {}
-    };
+      let festivosEnSemana = 0;  
+      for(let d=0; d<7; d++) {  
+          let isDic25 = dias[d].iso.endsWith("-12-25") && isDic25Active;  
+          let isEne1 = dias[d].iso.endsWith("-01-01") && isEne1Active;  
+          if(isDic25 || isEne1) festivosEnSemana++;  
+      }  
     
-    empleados.push(nuevoEmp);
-    localStorage.setItem("cf_emp", JSON.stringify(empleados));
+      let limiteDescansos = 2;  
+      if(tipoTemporada === "UN_DESCANSO") limiteDescansos = 1;  
+      if(tipoTemporada === "DICIEMBRE") limiteDescansos = dicDesc + festivosEnSemana;  
     
-    document.getElementById("nuevoEmpNombre").value = ""; // Limpiar campo
-    cargarSelect(); // Actualizar listas desplegables
-    mostrar(); // Actualizar tabla
-    alert(`Colaborador ${nombre} agregado con éxito a ${dep}.`);
-}
-
-function eliminarColaborador() {
-    let select = document.getElementById("eliminarEmpSelect");
-    if(!select.value) return alert("No hay colaboradores para eliminar.");
+      const ordenDep = ["Cajero Principal y Mixtos", "Promotoría", "Cajas abono", "Afore"];  
+      let listaVisual = [];  
+      ordenDep.forEach(dep => {  
+          let empsDep = copia.filter(e => e.dep === dep);  
+          empsDep.sort((a, b) => a.id - b.id); listaVisual = listaVisual.concat(empsDep);  
+      });  
     
-    let id = parseInt(select.value);
-    let emp = empleados.find(e => e.id === id);
+      for(let d=0; d<7; d++){  
+          let iso = dias[d].iso, diaNum = dias[d].num;  
+          copia.forEach(e => {  
+              if(e.vacaciones && e.vacaciones.includes(iso)) e.horario[d] = "VAC";  
+              else if(e.especiales && e.especiales.includes(iso)) e.horario[d] = "D";  
+              else if(e.cursos && e.cursos.includes(iso)) e.horario[d] = "CURSO";  
+                
+              if (tipoTemporada === "DICIEMBRE") {  
+                  let isDic25 = iso.endsWith("-12-25") && isDic25Active;  
+                  let isEne1 = iso.endsWith("-01-01") && isEne1Active;  
+                  if (isDic25 || isEne1) { if(!e.horario[d]) e.horario[d] = "D"; }  
+              }  
+                
+              if(e.dep === "Afore" && [15,16,20].includes(diaNum)) { if(!e.horario[d]) e.horario[d] = "-"; }  
+              if(e.nombre === "Fabiola" && [15,16,20].includes(diaNum)) { if(!e.horario[d]) e.horario[d] = "-"; }  
+              if(e.dep === "Promotoría" && [15,16,20].includes(diaNum) && e.nombre !== "Ernesto" && e.nombre !== "Faviola") { if(!e.horario[d]) e.horario[d] = "-"; }  
+          });  
+      }  
     
-    if(!emp) return alert("Selecciona un colaborador válido.");
-    
-    if(confirm(`¿Estás seguro de que deseas eliminar a ${emp.nombre} del departamento de ${emp.dep}?\n\nEsta acción borrará todas sus configuraciones y no se puede deshacer.`)) {
-        empleados = empleados.filter(e => e.id !== id);
-        localStorage.setItem("cf_emp", JSON.stringify(empleados));
-        cargarSelect();
-        mostrar();
-        alert("Colaborador eliminado correctamente.");
-    }
-}
-
-function cambiarTemporada(val) {
-    document.getElementById("opcionesDiciembre").style.display = (val === "DICIEMBRE") ? "block" : "none";
-    guardarTemporadaEstado();
-}
-
-function guardarTemporadaEstado() {
-    localStorage.setItem("cf_temp_tipo", document.getElementById("tipoTemporada").value);
-    localStorage.setItem("cf_temp_dic25", document.getElementById("dic25").checked);
-    localStorage.setItem("cf_temp_ene1", document.getElementById("ene1").checked);
-    localStorage.setItem("cf_temp_dicDesc", document.getElementById("dicDescansos").value);
-}
-
-function cargarTemporadaEstado() {
-    let tipo = localStorage.getItem("cf_temp_tipo") || "NORMAL";
-    document.getElementById("tipoTemporada").value = tipo;
-    document.getElementById("dic25").checked = localStorage.getItem("cf_temp_dic25") === "true";
-    document.getElementById("ene1").checked = localStorage.getItem("cf_temp_ene1") === "true";
-    document.getElementById("dicDescansos").value = localStorage.getItem("cf_temp_dicDesc") || "1";
-    cambiarTemporada(tipo);
-}
-
-function generar(){
-    let exito = false, resultado = null;
-    for(let i=0; i<800; i++) {
-        resultado = simularGeneracion(false);
-        if(resultado !== null) { exito = true; break; }
-    }
-    if(!exito) {
-        resultado = simularGeneracion(true);
-        alert("⚠️ Distribución compleja detectada. Se aplicó la distribución más óptima posible.");
-    }
-    if(resultado) empleados = resultado;
-    mostrar();
-    localStorage.setItem("cf_emp", JSON.stringify(empleados));
-}
-
-function simularGeneracion(relajado) {
-    let dias = obtenerSemana();
-    let copia = JSON.parse(JSON.stringify(empleados));
-    copia.forEach(e => e.horario = {});
-
-    let tipoTemporada = document.getElementById("tipoTemporada").value;
-    let isDic25Active = document.getElementById("dic25").checked;
-    let isEne1Active = document.getElementById("ene1").checked;
-    let dicDesc = parseInt(document.getElementById("dicDescansos").value);
-
-    let festivosEnSemana = 0;
-    for(let d=0; d<7; d++) {
-        let isDic25 = dias[d].iso.endsWith("-12-25") && isDic25Active;
-        let isEne1 = dias[d].iso.endsWith("-01-01") && isEne1Active;
-        if(isDic25 || isEne1) festivosEnSemana++;
-    }
-
-    let limiteDescansos = 2;
-    if(tipoTemporada === "UN_DESCANSO") limiteDescansos = 1;
-    if(tipoTemporada === "DICIEMBRE") limiteDescansos = dicDesc + festivosEnSemana;
-
-    const ordenDep = ["Cajero Principal y Mixtos", "Promotoría", "Cajas abono", "Afore"];
-    let listaVisual = [];
-    ordenDep.forEach(dep => {
-        let empsDep = copia.filter(e => e.dep === dep);
-        empsDep.sort((a, b) => a.id - b.id); listaVisual = listaVisual.concat(empsDep);
-    });
-
-    for(let d=0; d<7; d++){
-        let iso = dias[d].iso, diaNum = dias[d].num;
-        copia.forEach(e => {
-            if(e.vacaciones && e.vacaciones.includes(iso)) e.horario[d] = "VAC";
-            else if(e.especiales && e.especiales.includes(iso)) e.horario[d] = "D";
-            else if(e.cursos && e.cursos.includes(iso)) e.horario[d] = "CURSO";
-            
-            // Asignación Diciembre Festivo Obligatorio
-            if (tipoTemporada === "DICIEMBRE") {
-                let isDic25 = iso.endsWith("-12-25") && isDic25Active;
-                let isEne1 = iso.endsWith("-01-01") && isEne1Active;
-                if (isDic25 || isEne1) { if(!e.horario[d]) e.horario[d] = "D"; }
-            }
-            
-            if(e.dep === "Afore" && [15,16,20].includes(diaNum)) { if(!e.horario[d]) e.horario[d] = "-"; }
-            if(e.nombre === "Fabiola" && [15,16,20].includes(diaNum)) { if(!e.horario[d]) e.horario[d] = "-"; }
-            if(e.dep === "Promotoría" && [15,16,20].includes(diaNum) && e.nombre !== "Ernesto" && e.nombre !== "Faviola") { if(!e.horario[d]) e.horario[d] = "-"; }
-        });
-    }
-
-    const getLibres = (emp) => Object.values(emp.horario).filter(v => v === "D" || v === "VAC" || v === "CURSO").length;
-    
-    const esLibreAdyacente = (emp, d) => {
-        let vAnt = d > 0 ? emp.horario[d-1] : null, vSig = d < 6 ? emp.horario[d+1] : null;
-        return [vAnt, vSig].some(v => v === "D" || v === "VAC" || v === "CURSO");
-    };
-
-    const esLibreVertical = (emp, d) => {
-        let idx = listaVisual.findIndex(e => e.id === emp.id);
-        let prev = idx > 0 ? listaVisual[idx - 1] : null, next = idx < listaVisual.length - 1 ? listaVisual[idx + 1] : null;
-        let pLibre = prev && ["D", "VAC", "CURSO"].includes(prev.horario[d]);
-        let nLibre = next && ["D", "VAC", "CURSO"].includes(next.horario[d]);
-        return pLibre || nLibre;
-    };
-
-    let it = 0;
-    while(it < 40) {
-        let cambio = false;
-        copia.sort(() => Math.random() - 0.5);
-        copia.forEach(emp => {
-            if(getLibres(emp) < limiteDescansos) {
-                let diasP = [0,1,2,3,4,5,6].sort(() => Math.random() - 0.5);
-                for(let d of diasP) {
-                    if(!emp.horario[d]) {
-                        let diaNum = dias[d].num, dep = emp.dep, cMax = 2;
-                        if(dep === "Afore") cMax = 1;
-                        if([15,16,20].includes(diaNum)) {
-                            if(dep === "Cajero Principal y Mixtos" || dep === "Cajas abono") cMax = 1;
-                            if(dep === "Afore") cMax = 0;
-                        }
-                        if(relajado) cMax += 1;
-                        let asignados = copia.filter(e => e.dep === dep && (e.horario[d] === "D" || e.horario[d] === "VAC" || e.horario[d] === "CURSO")).length;
-                        
-                        if(asignados < cMax) { 
-                            if(!relajado) { if(esLibreAdyacente(emp, d) || esLibreVertical(emp, d)) continue; }
-                            emp.horario[d] = "D"; cambio = true; 
-                            if(getLibres(emp) >= limiteDescansos) break; 
-                        }
-                    }
-                }
-            }
-        });
-        if(!cambio) break; it++;
-    }
-
-    let val = true;
-    copia.forEach(e => { if(getLibres(e) < limiteDescansos) val = false; });
-    if(!val && !relajado) return null;
-
-    for(let d=0; d<7; d++){
-        let iso = dias[d].iso;
-        ordenDep.forEach(dep => {
-            let activos = copia.filter(e => e.dep === dep && (!e.horario[d] || e.horario[d] === "-"));
-            let turnos = (dep === "Afore") ? ["12-1", "1-2", "2-3"] : ["12-1", "1-2", "2-3", "3-4"];
-            turnos.sort(() => Math.random() - 0.5);
-            activos.forEach((e, i) => {
-                let comida = "";
-                if(e.nombre === "Fabiola") {
-                    let descAyer = (d > 0) && (e.horario[d-1] === "D" || e.horario[d-1] === "VAC" || e.horario[d-1] === "CURSO");
-                    comida = descAyer ? "4-5" : "4-6";
-                } else if(e.nombre === "Ernesto") { comida = "12:30-1:30"; }
-                else { comida = turnos[i % turnos.length]; }
-
-                let finalTxt = comida;
-                if(e.horariosEspeciales && e.horariosEspeciales[iso]) finalTxt = e.horariosEspeciales[iso] + " / " + comida;
-                else if(e.entradas11 && e.entradas11.includes(iso)) finalTxt = "11:00 AM / " + comida;
-                e.horario[d] = finalTxt;
-            });
-        });
-    }
-    return copia;
-}
-
-function mostrar(){
-    let dias = obtenerSemana();
-    let html = `<tr><th style="width:22%">Nombre</th>`;
-    dias.forEach(d => html += `<th>${d.nombre}<br>${d.num}</th>`); html += `</tr>`;
-    let depActual = ""; const orden = ["Cajero Principal y Mixtos", "Promotoría", "Cajas abono", "Afore"];
-    let final = [];
-    orden.forEach(dep => { let empsDep = empleados.filter(e => e.dep === dep); empsDep.sort((a, b) => a.id - b.id); final = final.concat(empsDep); });
-    
-    final.forEach(e => {
-        if(e.dep !== depActual){ html += `<tr><td colspan="8" class="dep-row">${e.dep}</td></tr>`; depActual = e.dep; }
-        html += `<tr><td class="nombre-col">${e.nombre}</td>`;
-        for(let i=0; i<7; i++){
-            let v = e.horario[i] || "-";
-            let c = (v === "D") ? "descanso" : (v === "VAC" ? "vacaciones" : (v === "CURSO" ? "curso" : ""));
-            html += `<td class="${c}" style="cursor:pointer; font-weight:500;" onclick="abrirEditorManual(${e.id}, ${i})">${v}</td>`;
-        }
-        html += `</tr>`;
-    });
-    document.getElementById("tabla").innerHTML = html;
-}
-
-function abrirEditorManual(empId, diaIdx) {
-    let emp = empleados.find(e => e.id === empId); editEmpIdx = empId; editDiaIdx = diaIdx;
-    let dias = obtenerSemana(), diaInfo = dias[diaIdx];
-    document.getElementById("modal-titulo").innerText = `Editar: ${emp.nombre} (${diaInfo.nombre} ${diaInfo.num})`;
-    let vActual = emp.horario[diaIdx] || "-"; let sel = document.getElementById("modal-nuevo-turno");
-    let estandar = ["D", "VAC", "CURSO", "12-1", "1-2", "2-3", "3-4", "4-5", "4-6", "12:30-1:30"];
-    if(estandar.includes(vActual)) { sel.value = vActual; document.getElementById("modal-turno-personalizado").style.display = "none"; } 
-    else { sel.value = "PERSONALIZADO"; document.getElementById("modal-turno-personalizado").style.display = "block"; document.getElementById("modal-turno-personalizado").value = vActual; }
-    document.getElementById("modal-editar").style.display = "flex";
-}
-
-function mostrarInputPersonalizado(val) { document.getElementById("modal-turno-personalizado").style.display = (val === "PERSONALIZADO") ? "block" : "none"; }
-function cerrarEditorManual() { document.getElementById("modal-editar").style.display = "none"; }
-
-function guardarEdicionManual() {
-    let selVal = document.getElementById("modal-nuevo-turno").value;
-    let nTurno = selVal === "PERSONALIZADO" ? document.getElementById("modal-turno-personalizado").value : selVal;
-    let emp = empleados.find(e => e.id === editEmpIdx); let dias = obtenerSemana(), diaInfo = dias[editDiaIdx];
-    let diaNum = diaInfo.num, dep = emp.dep, alerts = [], antTurno = emp.horario[editDiaIdx];
-    emp.horario[editDiaIdx] = nTurno; let esLibre = (nTurno === "D" || nTurno === "VAC" || nTurno === "CURSO");
-
-    if([15, 16, 20].includes(diaNum) && esLibre) {
-        if(emp.nombre === "Fabiola") alerts.push(`- Fabiola no puede descansar los días de quincena/compromiso.`);
-        if(dep === "Afore") alerts.push(`- Personal de Afore no debe descansar los días 15, 16 o 20.`);
-        if(dep === "Promotoría" && emp.nombre !== "Ernesto" && emp.nombre !== "Faviola") alerts.push(`- En Promotoría solo Ernesto o Faviola descansan los días 15, 16 o 20.`);
-    }
-
-    let cMax = (dep === "Afore") ? 1 : 2;
-    if([15,16,20].includes(diaNum)) { if(dep === "Cajero Principal y Mixtos" || dep === "Cajas abono") cMax = 1; if(dep === "Afore") cMax = 0; }
-    let asig = empleados.filter(e => e.dep === dep && (e.horario[editDiaIdx] === "D" || e.horario[editDiaIdx] === "VAC" || e.horario[editDiaIdx] === "CURSO")).length;
-    if(asig > cMax && esLibre) alerts.push(`- Se supera el cupo ideal de descansos para ${dep} (Límite: ${cMax}).`);
-
-    let tipoTemporada = document.getElementById("tipoTemporada").value;
-    let limiteDescansos = 2;
-    if(tipoTemporada === "UN_DESCANSO") limiteDescansos = 1;
-    if(tipoTemporada === "DICIEMBRE") {
-        let festivosEnSemana = 0;
-        for(let d=0; d<7; d++) {
-            if(dias[d].iso.endsWith("-12-25") && document.getElementById("dic25").checked) festivosEnSemana++;
-            if(dias[d].iso.endsWith("-01-01") && document.getElementById("ene1").checked) festivosEnSemana++;
-        }
-        limiteDescansos = parseInt(document.getElementById("dicDescansos").value) + festivosEnSemana;
-    }
-
-    let totLibres = Object.values(emp.horario).filter(v => v === "D" || v === "VAC" || v === "CURSO").length;
-    if(totLibres !== limiteDescansos) alerts.push(`- ${emp.nombre} tendrá ${totLibres} días libres esta semana (El límite marcado es ${limiteDescansos}).`);
-
-    if(alerts.length > 0) {
-        if(!confirm("⚠️ ATENCIÓN: Estás rompiendo reglas del sistema:\n\n" + alerts.join("\n") + "\n\n¿Deseas aplicar el cambio?")) { emp.horario[editDiaIdx] = antTurno; return; }
-    }
-
-    cerrarEditorManual(); mostrar(); localStorage.setItem("cf_emp", JSON.stringify(empleados));
-    if(document.getElementById("vista-completa").style.display === "flex") {
-        document.getElementById("vista-completa-content").innerHTML = `<table style="width:100%; height:100%; border-collapse:collapse; table-layout:fixed;">${document.getElementById("tabla").innerHTML}</table>`;
-    }
-}
-
-function mostrarVistaCompleta() {
-    let tablaHTML = document.getElementById("tabla").innerHTML;
-    if(tablaHTML === "") return alert("Genera los horarios primero.");
-    document.getElementById("vista-completa-content").innerHTML = `<table style="width:100%; height:100%; border-collapse:collapse; table-layout:fixed;">${tablaHTML}</table>`;
-    document.getElementById("menu-principal").style.display = "none"; document.getElementById("vista-completa").style.display = "flex";
-    history.pushState({view: 'full'}, '');
-}
-
-function cerrarVistaCompleta() { document.getElementById("vista-completa").style.display = "none"; document.getElementById("menu-principal").style.display = "block"; }
-window.onpopstate = function() { cerrarVistaCompleta(); };
-
-function descargarComoImagen() {
-    let contenedor = document.getElementById("vista-completa-content");
-    html2canvas(contenedor, { scale: 3, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
-        let enlace = document.createElement("a"); enlace.download = "Horario_Gaby_GitHub.png";
-        enlace.href = canvas.toDataURL("image/png"); document.body.appendChild(enlace); enlace.click(); document.body.removeChild(enlace);
-        alert("¡Imagen del horario descargada con éxito!");
-    });
-}
-
-function reiniciar(){ 
-    if(confirm("¿Deseas resetear todo? Se borrarán horarios y vacaciones de la semana, pero los colaboradores se mantendrán.")) { 
-        // Modificado para NO borrar los empleados nuevos agregados, solo resetear su info de turnos
-        empleados = empleados.map(e => ({...e, vacaciones:[], especiales:[], cursos:[], horariosEspeciales:{}, entradas11:[], horario:{}}));
-        localStorage.setItem("cf_emp", JSON.stringify(empleados)); 
-        document.getElementById("tipoTemporada").value = "NORMAL"; cambiarTemporada("NORMAL");
-        document.getElementById("tabla").innerHTML = ""; alert("Horarios y configuraciones limpias."); mostrar();
-    } 
-}
-
-function cargarSelect(){
-    let sel = document.getElementById("empVac"); sel.innerHTML = "";
-    let selEliminar = document.getElementById("eliminarEmpSelect"); 
-    if(selEliminar) selEliminar.innerHTML = "";
-    
-    let empsSelect = [...empleados].sort((a,b) => a.nombre.localeCompare(b.nombre));
-    empsSelect.forEach(e => { 
-        let op = document.createElement("option"); op.value = e.id; op.textContent = e.nombre; sel.appendChild(op); 
+      const getLibres = (emp) => Object.values(emp.horario).filter(v => v === "D" || v === "VAC" || v === "CURSO").length;  
         
-        // Llenar también el select de eliminar (con departamento para mejor contexto)
-        if(selEliminar) {
-            let opElim = document.createElement("option"); opElim.value = e.id; opElim.textContent = `${e.nombre} (${e.dep})`; selEliminar.appendChild(opElim);
-        }
-    });
-}
+      const esLibreAdyacente = (emp, d) => {  
+          let vAnt = d > 0 ? emp.horario[d-1] : null, vSig = d < 6 ? emp.horario[d+1] : null;  
+          return [vAnt, vSig].some(v => v === "D" || v === "VAC" || v === "CURSO");  
+      };  
+    
+      const esLibreVertical = (emp, d) => {  
+          let idx = listaVisual.findIndex(e => e.id === emp.id);  
+          let prev = idx > 0 ? listaVisual[idx - 1] : null, next = idx < listaVisual.length - 1 ? listaVisual[idx + 1] : null;  
+          let pLibre = prev && ["D", "VAC", "CURSO"].includes(prev.horario[d]);  
+          let nLibre = next && ["D", "VAC", "CURSO"].includes(next.horario[d]);  
+          return pLibre || nLibre;  
+      };  
+    
+      let it = 0;  
+      while(it < 40) {  
+          let cambio = false;  
+          copia.sort(() => Math.random() - 0.5);  
+          copia.forEach(emp => {  
+              if(getLibres(emp) < limiteDescansos) {  
+                  let diasP = [0,1,2,3,4,5,6].sort(() => Math.random() - 0.5);  
+                  for(let d of diasP) {  
+                      if(!emp.horario[d]) {  
+                          let diaNum = dias[d].num, dep = emp.dep, cMax = 2;  
+                          if(dep === "Afore") cMax = 1;  
+                          if([15,16,20].includes(diaNum)) {  
+                              if(dep === "Cajero Principal y Mixtos" || dep === "Cajas abono") cMax = 1;  
+                              if(dep === "Afore") cMax = 0;  
+                          }  
+                          if(relajado) cMax += 1;  
+                          let asignados = copia.filter(e => e.dep === dep && (e.horario[d] === "D" || e.horario[d] === "VAC" || e.horario[d] === "CURSO")).length;  
+                            
+                          if(asignados < cMax) {   
+                              if(!relajado) { if(esLibreAdyacente(emp, d) || esLibreVertical(emp, d)) continue; }  
+                              emp.horario[d] = "D"; cambio = true;   
+                              if(getLibres(emp) >= limiteDescansos) break;   
+                          }  
+                      }  
+                  }  
+              }  
+          });  
+          if(!cambio) break; it++;  
+      }  
+    
+      let val = true;  
+      copia.forEach(e => { if(getLibres(e) < limiteDescansos) val = false; });  
+      if(!val && !relajado) return null;  
+    
+      for(let d=0; d<7; d++){  
+          let iso = dias[d].iso;  
+          ordenDep.forEach(dep => {  
+              let activos = copia.filter(e => e.dep === dep && (!e.horario[d] || e.horario[d] === "-"));  
+              let turnos = (dep === "Afore") ? ["12-1", "1-2", "2-3"] : ["12-1", "1-2", "2-3", "3-4"];  
+              turnos.sort(() => Math.random() - 0.5);  
+              activos.forEach((e, i) => {  
+                  let comida = "";  
+                  if(e.nombre === "Fabiola") {  
+                      let descAyer = (d > 0) && (e.horario[d-1] === "D" || e.horario[d-1] === "VAC" || e.horario[d-1] === "CURSO");  
+                      comida = descAyer ? "4-5" : "4-6";  
+                  } else if(e.nombre === "Ernesto") { comida = "12:30-1:30"; }  
+                  else { comida = turnos[i % turnos.length]; }  
+    
+                  let finalTxt = comida;  
+                  if(e.horariosEspeciales && e.horariosEspeciales[iso]) finalTxt = e.horariosEspeciales[iso] + " / " + comida;  
+                  else if(e.entradas11 && e.entradas11.includes(iso)) finalTxt = "11:00 AM / " + comida;  
+                  e.horario[d] = finalTxt;  
+              });  
+          });  
+      }  
+      return copia;  
+  }  
+  
+  window.mostrar = function(){  
+      let dias = obtenerSemana();  
+      let html = `<tr><th style="width:22%">Nombre</th>`;  
+      dias.forEach(d => html += `<th>${d.nombre}<br>${d.num}</th>`); html += `</tr>`;  
+      let depActual = ""; const orden = ["Cajero Principal y Mixtos", "Promotoría", "Cajas abono", "Afore"];  
+      let final = [];  
+      orden.forEach(dep => { let empsDep = window.empleados.filter(e => e.dep === dep); empsDep.sort((a, b) => a.id - b.id); final = final.concat(empsDep); });  
+        
+      final.forEach(e => {  
+          if(e.dep !== depActual){ html += `<tr><td colspan="8" class="dep-row">${e.dep}</td></tr>`; depActual = e.dep; }  
+          html += `<tr><td class="nombre-col">${e.nombre}</td>`;  
+          for(let i=0; i<7; i++){  
+              let v = e.horario[i] || "-";  
+              let c = (v === "D") ? "descanso" : (v === "VAC" ? "vacaciones" : (v === "CURSO" ? "curso" : ""));  
+              html += `<td class="${c}" style="cursor:pointer; font-weight:500;" onclick="abrirEditorManual(${e.id}, ${i})">${v}</td>`;  
+          }  
+          html += `</tr>`;  
+      });  
+      let tablaEl = document.getElementById("tabla");
+      if(tablaEl) tablaEl.innerHTML = html;  
+  }  
+  
+  window.abrirEditorManual = function(empId, diaIdx) {  
+      let emp = window.empleados.find(e => e.id === empId); editEmpIdx = empId; editDiaIdx = diaIdx;  
+      let dias = obtenerSemana(), diaInfo = dias[diaIdx];  
+      document.getElementById("modal-titulo").innerText = `Editar: ${emp.nombre} (${diaInfo.nombre} ${diaInfo.num})`;  
+      let vActual = emp.horario[diaIdx] || "-"; let sel = document.getElementById("modal-nuevo-turno");  
+      let estandar = ["D", "VAC", "CURSO", "12-1", "1-2", "2-3", "3-4", "4-5", "4-6", "12:30-1:30"];  
+      if(estandar.includes(vActual)) { sel.value = vActual; document.getElementById("modal-turno-personalizado").style.display = "none"; }   
+      else { sel.value = "PERSONALIZADO"; document.getElementById("modal-turno-personalizado").style.display = "block"; document.getElementById("modal-turno-personalizado").value = vActual; }  
+      document.getElementById("modal-editar").style.display = "flex";  
+  }  
+  
+  window.mostrarInputPersonalizado = function(val) { document.getElementById("modal-turno-personalizado").style.display = (val === "PERSONALIZADO") ? "block" : "none"; }  
+  window.cerrarEditorManual = function() { document.getElementById("modal-editar").style.display = "none"; }  
+  
+  window.guardarEdicionManual = function() {  
+      let selVal = document.getElementById("modal-nuevo-turno").value;  
+      let nTurno = selVal === "PERSONALIZADO" ? document.getElementById("modal-turno-personalizado").value : selVal;  
+      let emp = window.empleados.find(e => e.id === editEmpIdx);  
+      emp.horario[editDiaIdx] = nTurno;  
+      cerrarEditorManual(); mostrar();  
+      sincronizarFirestore();
+      if(document.getElementById("vista-completa").style.display === "flex") {  
+          document.getElementById("vista-completa-content").innerHTML = `<table style="width:100%; height:100%; border-collapse:collapse; table-layout:fixed;">${document.getElementById("tabla").innerHTML}</table>`;  
+      }  
+  }  
+  
+  window.mostrarVistaCompleta = function() {  
+      let tablaHTML = document.getElementById("tabla").innerHTML;  
+      if(tablaHTML === "") return alert("Genera los horarios primero.");  
+      document.getElementById("vista-completa-content").innerHTML = `<table style="width:100%; height:100%; border-collapse:collapse; table-layout:fixed;">${tablaHTML}</table>`;  
+      document.getElementById("vista-gerente").style.display = "none"; document.getElementById("vista-completa").style.display = "flex";  
+      history.pushState({view: 'full'}, '');  
+  }  
+  
+  window.cerrarVistaCompleta = function() { document.getElementById("vista-completa").style.display = "none"; document.getElementById("vista-gerente").style.display = "block"; }  
+  window.onpopstate = function() { cerrarVistaCompleta(); };  
+  
+  window.descargarComoImagen = function() {  
+      let contenedor = document.getElementById("vista-completa-content");  
+      html2canvas(contenedor, { scale: 3, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {  
+          let enlace = document.createElement("a"); enlace.download = "Horario_Gaby_GitHub.png";  
+          enlace.href = canvas.toDataURL("image/png"); document.body.appendChild(enlace); enlace.click(); document.body.removeChild(enlace);  
+          alert("¡Imagen del horario descargada con éxito!");  
+      });  
+  }  
+  
+  window.reiniciar = function(){   
+      if(confirm("¿Deseas resetear todo? Se borrarán horarios y vacaciones de la semana.")) {   
+          window.empleados = window.empleados.map(e => ({...e, vacaciones:[], especiales:[], cursos:[], horariosEspeciales:{}, entradas11:[], horario:{}}));  
+          window.solicitudesBuzon = [];
+          sincronizarFirestore();
+          document.getElementById("tipoTemporada").value = "NORMAL"; cambiarTemporada("NORMAL");  
+          document.getElementById("tabla").innerHTML = ""; alert("Horarios y configuraciones limpias."); mostrar();  
+      }   
+  }  
+  
+  window.cargarSelect = function(){  
+      let sel = document.getElementById("empVac"); if(sel) sel.innerHTML = "";  
+      let selEliminar = document.getElementById("eliminarEmpSelect"); if(selEliminar) selEliminar.innerHTML = "";  
+        
+      let empsSelect = [...window.empleados].sort((a,b) => a.nombre.localeCompare(b.nombre));  
+      empsSelect.forEach(e => {   
+          if(sel) { let op = document.createElement("option"); op.value = e.id; op.textContent = e.nombre; sel.appendChild(op); }  
+          if(selEliminar) { let opElim = document.createElement("option"); opElim.value = e.id; opElim.textContent = `${e.nombre} (${e.dep})`; selEliminar.appendChild(opElim); }  
+      });  
+  }  
+</script>  
 
-cargarSelect(); cargarTemporadaEstado(); mostrar();
-</script>
-</body>
+</body>  
 </html>
