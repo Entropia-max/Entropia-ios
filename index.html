@@ -3,26 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#0f172a">
+<meta name="theme-color" content="#0a0f1d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Horarios Gaby 🧸</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
     :root {
-        --bg-main: #0f172a;
-        --card-bg: #1e293b;
+        --bg-main: #0a0f1d;
+        --card-bg: rgba(30, 41, 59, 0.7);
         --accent-blue: #38bdf8;
         --accent-green: #10b981;
         --accent-purple: #a855f7;
         --accent-orange: #f59e0b;
         --accent-red: #ef4444;
         --text-white: #f8fafc;
+        --neon-glow-blue: 0 0 15px rgba(56, 189, 248, 0.4);
+        --neon-glow-orange: 0 0 15px rgba(245, 158, 11, 0.4);
     }
     
     body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: var(--bg-main);
+        font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+        background: radial-gradient(circle at 50% 20%, #1e1b4b 0%, #0a0f1d 70%);
+        background-attachment: fixed;
         color: var(--text-white);
         margin: 0;
         padding: 0;
@@ -30,16 +33,59 @@
     }
     
     .header {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         padding: 18px;
         text-align: center;
         font-size: 22px;
         font-weight: bold;
-        border-bottom: 2px solid var(--accent-blue);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     }
     
-    /* Vistas de Navegación */
+    /* ANIMACIONES DE TRANSICIÓN DE PANTALLA */
+    .view-container {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .slide-in-right {
+        animation: slideInRight 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+
+    .slide-out-left {
+        animation: slideOutLeft 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+
+    .slide-in-left {
+        animation: slideInLeft 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+
+    .slide-out-right {
+        animation: slideOutRight 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+
+    @keyframes slideInRight {
+        from { opacity: 0; transform: translateX(50px) scale(0.98); }
+        to { opacity: 1; transform: translateX(0) scale(1); }
+    }
+
+    @keyframes slideOutLeft {
+        from { opacity: 1; transform: translateX(0); }
+        to { opacity: 0; transform: translateX(-50px); }
+    }
+
+    @keyframes slideInLeft {
+        from { opacity: 0; transform: translateX(-50px) scale(0.98); }
+        to { opacity: 1; transform: translateX(0) scale(1); }
+    }
+
+    @keyframes slideOutRight {
+        from { opacity: 1; transform: translateX(0); }
+        to { opacity: 0; transform: translateX(50px); }
+    }
+
     #vista-principal { 
         display: flex; 
         flex-direction: column; 
@@ -51,30 +97,55 @@
     }
     #vista-gerente, #vista-colaborador, #vista-buzon { display: none; }
     
-    /* Botones con estilo juvenil y animación */
+    /* Icono principal flotante */
+    .hero-icon {
+        font-size: 50px;
+        margin-bottom: 12px;
+        filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.6));
+        animation: floatIcon 3s ease-in-out infinite;
+    }
+
+    @keyframes floatIcon {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+
+    /* Botones futuristas con animación */
     .menu-btn { 
-        background: linear-gradient(135deg, #1e293b 0%, #334155 100%); 
-        border: 2px solid var(--accent-blue); 
+        background: rgba(30, 41, 59, 0.6); 
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(56, 189, 248, 0.5); 
         color: white; 
         font-size: 19px; 
-        font-weight: bold; 
+        font-weight: 700; 
         padding: 22px; 
         margin: 14px 0; 
-        border-radius: 16px; 
+        border-radius: 18px; 
         cursor: pointer; 
         width: 100%; 
         max-width: 320px; 
-        box-shadow: 0 8px 20px rgba(56, 189, 248, 0.15); 
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--neon-glow-blue); 
+        transition: transform 0.1s ease, box-shadow 0.1s ease !important;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 12px;
+        position: relative;
+        overflow: hidden;
     }
-    
+
     .menu-btn:active { 
-        transform: scale(0.95); 
-        box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        transform: scale(0.92) !important; 
+        box-shadow: 0 0 20px rgba(56, 189, 248, 0.8) !important;
+    }
+
+    button, .btn {
+        transition: transform 0.1s ease, filter 0.1s ease !important;
+    }
+    button:active, .btn:active {
+        transform: scale(0.90) !important;
+        filter: brightness(1.2) !important;
     }
 
     #vista-completa { display: none; background: white; width: 100vw; height: 100vh; height: 100dvh; overflow: hidden; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 9999; }
@@ -83,18 +154,21 @@
   
     .card {
         background: var(--card-bg);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.08);
         margin: 12px 8px;
         padding: 16px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        border-radius: 14px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.37);
     }  
     label { font-size: 13px; display: block; margin-bottom: 4px; color: #94a3b8; font-weight: bold; }  
     input, button, select, textarea {
         width: 100%;
         padding: 12px;
         margin-top: 6px;
-        border: none;
-        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 10px;
         font-size: 14px;
         box-sizing: border-box;
     }  
@@ -103,9 +177,8 @@
         color: #0f172a;
         font-weight: bold;
         cursor: pointer;
-        transition: transform 0.15s ease;
+        border: none;
     }  
-    .btn:active { transform: scale(0.97); }
     .btn-green { background: var(--accent-green); color: white; }  
     .btn-red { background: var(--accent-red); color: white; }  
     .btn-orange { background: var(--accent-orange); color: white; }  
@@ -113,7 +186,7 @@
     .btn-purple { background: var(--accent-purple); color: white; }
     .btn-volver { background: #475569; color: white; margin-bottom: 12px; }
   
-    #zona { background: white; padding: 2px; width: 100%; min-height: 50px; margin-top: 10px; border-radius: 6px; overflow: hidden; }  
+    #zona { background: white; padding: 2px; width: 100%; min-height: 50px; margin-top: 10px; border-radius: 8px; overflow: hidden; }  
   
     table { width: 100%; height: 100%; border-collapse: collapse; table-layout: fixed; color: black; }  
     th { background: #f1f5f9; border: 1px solid #000; padding: 2px; font-size: clamp(7px, 2.2vw, 11px); }  
@@ -146,30 +219,30 @@
         border-left: 4px solid var(--accent-blue);
         padding: 12px;
         margin-bottom: 10px;
-        border-radius: 6px;
+        border-radius: 8px;
     }
 </style>  
 </head>  
 <body>  
 
 <!-- PANTALLA PRINCIPAL -->
-<div id="vista-principal">
-    <div style="font-size: 42px; margin-bottom: 10px; filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.4));">🧸</div>
-    <div style="font-size: 26px; font-weight: 800; margin-bottom: 30px; color: var(--accent-blue); letter-spacing: 0.5px;">Horarios Gaby</div>
+<div id="vista-principal" class="view-container">
+    <div class="hero-icon">🧸</div>
+    <div style="font-size: 28px; font-weight: 800; margin-bottom: 35px; color: var(--accent-blue); letter-spacing: 1px; text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);">Horarios Gaby</div>
     
     <button class="menu-btn" onclick="abrirColaboradores()">
         <span>👥</span> Colaboradores
     </button>
-    <button class="menu-btn" style="border-color: var(--accent-orange); box-shadow: 0 8px 20px rgba(245, 158, 11, 0.15);" onclick="pedirPassword()">
+    <button class="menu-btn" style="border-color: var(--accent-orange); box-shadow: var(--neon-glow-orange);" onclick="pedirPassword()">
         <span>🔐</span> Gerente
     </button>
 </div>
 
 <!-- VISTA COLABORADORES -->
-<div id="vista-colaborador">
+<div id="vista-colaborador" class="view-container">
     <div class="header">Portal de Colaboradores 📋</div>
     <div class="card">
-        <button class="btn btn-volver" onclick="irAInicio()">⬅️ Volver al Menú Principal</button>
+        <button class="btn btn-volver" onclick="irAInicio('vista-colaborador')">⬅️ Volver al Menú Principal</button>
         <label>1. Selecciona tu Nombre:</label>  
         <select id="empColabSelect" style="color:black; font-weight:bold;"></select>  
           
@@ -184,11 +257,11 @@
 </div>
 
 <!-- VISTA GERENTE -->
-<div id="vista-gerente">
+<div id="vista-gerente" class="view-container">
     <div class="header">Panel de Gerencia - Horarios Gaby 🧸</div>  
     <div class="card">
-        <button class="btn btn-volver" onclick="irAInicio()">⬅️ Volver al Menú Principal</button>
-        <button class="menu-btn" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); border-color: var(--accent-purple); width: 100%; max-width: none; margin: 0 0 15px 0; padding: 15px;" onclick="abrirBuzon()">
+        <button class="btn btn-volver" onclick="irAInicio('vista-gerente')">⬅️ Volver al Menú Principal</button>
+        <button class="menu-btn" style="background: linear-gradient(135deg, rgba(30, 27, 75, 0.8) 0%, rgba(49, 46, 129, 0.8) 100%); border-color: var(--accent-purple); box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); width: 100%; max-width: none; margin: 0 0 15px 0; padding: 15px;" onclick="abrirBuzon()">
             <span>📬</span> Buzón de Solicitudes <span id="badgeBuzon" style="background: var(--accent-red); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; display: none;">0</span>
         </button>
 
@@ -206,7 +279,7 @@
         <div id="contenedor-dinamico-accion" style="margin-top:12px; background:#0f172a; padding:12px; border-radius:8px; display:none;"></div>  
     </div>  
 
-    <div class="card" style="border: 1px solid var(--accent-green); background: #064e3b22;">  
+    <div class="card" style="border: 1px solid var(--accent-green); background: rgba(6, 78, 59, 0.2);">  
         <label style="color: var(--accent-green); font-weight: bold; font-size: 13px;">👥 Gestión de Colaboradores</label>  
         <div style="margin-top:10px; background:#0f172a; padding:12px; border-radius:8px;">  
             <label style="color:white; font-size:12px;">Agregar Nuevo:</label>  
@@ -227,7 +300,7 @@
         </div>  
     </div>  
 
-    <div class="card" style="border: 1px solid var(--accent-orange); background: #78350f22;">  
+    <div class="card" style="border: 1px solid var(--accent-orange); background: rgba(120, 53, 15, 0.2);">  
         <label style="color: var(--accent-orange); font-weight: bold; font-size: 13px;">⚡ Configuración de Temporada</label>  
         <select id="tipoTemporada" onchange="cambiarTemporada(this.value)" style="color:black; margin-top:5px; font-weight:bold;">  
             <option value="NORMAL">Normal (2 Descansos por semana)</option>  
@@ -266,7 +339,7 @@
 </div>  
 
 <!-- VISTA BUZÓN DE GERENCIA -->
-<div id="vista-buzon">
+<div id="vista-buzon" class="view-container">
     <div class="header">Buzón de Solicitudes 📬</div>
     <div class="card">
         <button class="btn btn-volver" onclick="volverAGerente()">⬅️ Volver a Panel Gerente</button>
@@ -399,40 +472,53 @@
       }
   }
 
-  // Navegación entre vistas
+  // LÓGICA DE TRANSICIONES DE PANTALLA
+  function cambiarVistaAnimada(vistaActualId, vistaNuevaId, direccion) {
+      let actual = document.getElementById(vistaActualId);
+      let nueva = document.getElementById(vistaNuevaId);
+
+      let outClass = direccion === 'next' ? 'slide-out-left' : 'slide-out-right';
+      let inClass = direccion === 'next' ? 'slide-in-right' : 'slide-in-left';
+
+      actual.classList.remove('slide-in-right', 'slide-in-left');
+      actual.classList.add(outClass);
+
+      setTimeout(() => {
+          actual.style.display = "none";
+          actual.classList.remove(outClass);
+
+          nueva.style.display = vistaNuevaId === 'vista-principal' ? "flex" : "block";
+          nueva.classList.remove('slide-out-left', 'slide-out-right');
+          nueva.classList.add(inClass);
+      }, 250);
+  }
+
   window.abrirColaboradores = function() {
-      document.getElementById("vista-principal").style.display = "none";
-      document.getElementById("vista-colaborador").style.display = "block";
       cargarSelectColaborador();
+      cambiarVistaAnimada('vista-principal', 'vista-colaborador', 'next');
   }
 
   window.pedirPassword = function() {
       let pass = prompt("Ingresa la contraseña de Gerente:");
       if(pass === "PEKITAS") {
-          document.getElementById("vista-principal").style.display = "none";
-          document.getElementById("vista-gerente").style.display = "block";
           cargarSelect(); cargarTemporadaEstado(); mostrar();
+          cambiarVistaAnimada('vista-principal', 'vista-gerente', 'next');
       } else if(pass !== null) {
           alert("Contraseña incorrecta.");
       }
   }
 
-  window.irAInicio = function() {
-      document.getElementById("vista-colaborador").style.display = "none";
-      document.getElementById("vista-gerente").style.display = "none";
-      document.getElementById("vista-buzon").style.display = "none";
-      document.getElementById("vista-principal").style.display = "flex";
+  window.irAInicio = function(desdeVista) {
+      cambiarVistaAnimada(desdeVista, 'vista-principal', 'back');
   }
 
   window.abrirBuzon = function() {
-      document.getElementById("vista-gerente").style.display = "none";
-      document.getElementById("vista-buzon").style.display = "block";
       renderBuzon();
+      cambiarVistaAnimada('vista-gerente', 'vista-buzon', 'next');
   }
 
   window.volverAGerente = function() {
-      document.getElementById("vista-buzon").style.display = "none";
-      document.getElementById("vista-gerente").style.display = "block";
+      cambiarVistaAnimada('vista-buzon', 'vista-gerente', 'back');
   }
 
   window.obtenerSemana = function() {  
@@ -564,7 +650,7 @@
       cont.innerHTML = window.solicitudesBuzon.map(sol => {
           let estadoColor = sol.estado === "APROBADO" ? "#10b981" : (sol.estado === "RECHAZADO" ? "#ef4444" : "#f59e0b");
           return `<div class="solicitud-card" style="border-left-color: ${estadoColor}">
-              <div style="display:flex; justify-size:space-between; align-items:center;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
                   <strong style="font-size:15px;">${sol.empNombre} (${sol.empDep})</strong>
                   <span style="font-size:11px; background:${estadoColor}; color:black; padding:2px 6px; border-radius:4px; font-weight:bold;">${sol.estado}</span>
               </div>
