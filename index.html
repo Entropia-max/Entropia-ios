@@ -607,7 +607,6 @@
       if(!empOrig.vacaciones) empOrig.vacaciones = []; 
       if(!empOrig.especiales) empOrig.especiales = [];  
 
-      // Asignar directamente a su perfil
       diasSeleccionadosTemp.forEach(f => {
           if(tipo === 'VACACIONES') {
               if(!empOrig.vacaciones.includes(f)) empOrig.vacaciones.push(f);
@@ -616,7 +615,6 @@
           }
       });
 
-      // Crear entrada en el buzón de la gerente
       let nuevaSolicitud = {
           id: Date.now(),
           empId: empOrig.id,
